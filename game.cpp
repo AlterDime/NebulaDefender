@@ -114,11 +114,7 @@ void save_high_score(int score) {
 }
 
 void show_tutorial_overlay(PowerUpType type) {
-    // 1. Play ascending audio fanfare melody
-    play_tone(523, 2); sleep_ms(35);
-    play_tone(659, 2); sleep_ms(35);
-    play_tone(784, 2); sleep_ms(35);
-    play_tone(1046, 5);
+    stop_tone(); // Kill any pickup sound before modal blocks the loop
 
     uint16_t theme_color = C_CYAN;
     const char *title = "";
@@ -430,8 +426,6 @@ void reset_game() {
 }
 
 void fire_bullet() {
-    // Play retro high-frequency synth shoot sound
-    play_tone(880, 2);
 
     if (spread_shot_active) {
         // 3x Spread Shot: up to 24 bullets on screen simultaneously (8 salvos of 3)
