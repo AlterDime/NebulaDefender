@@ -1,0 +1,18 @@
+# CMake build directories
+build/
+blink/build/
+
+# VS Code directories (if user prefers to keep vscode workspaces untracked)
+.vscode/
+blink/.vscode/
+
+# Compiled outputs
+*.elf
+*.uf2
+*.hex
+*.bin
+*.map
+
+# OS files
+.DS_Store
+Thumbs.db
