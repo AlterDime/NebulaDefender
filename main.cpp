@@ -338,13 +338,7 @@ int main() {
                     for (int i = 0; i < MAX_ENEMIES; i++) {
                         if (enemies[i].active) {
                             spawn_explosion((int)enemies[i].x, (int)enemies[i].y);
-                            int prev_draw_shake_x = draw_shake_offset_x;
-                            int prev_draw_shake_y = draw_shake_offset_y;
-                            draw_shake_offset_x = old_enemy_sx[i];
-                            draw_shake_offset_y = old_enemy_sy[i];
-                            erase_sprite(old_enemy_x[i], old_enemy_y[i], 8, 8);
-                            draw_shake_offset_x = prev_draw_shake_x;
-                            draw_shake_offset_y = prev_draw_shake_y;
+                            erase_sprite_with_shake(old_enemy_x[i], old_enemy_y[i], 8, 8, old_enemy_sx[i], old_enemy_sy[i]);
                             enemies[i].active = false; // Turn off immediately
                             score += 1;
                         }
@@ -365,24 +359,10 @@ int main() {
                         draw_shake_offset_y = shake_offset_y;
 
                         // Clean boss space
-                        {
-                            int prev_draw_shake_x = draw_shake_offset_x;
-                            int prev_draw_shake_y = draw_shake_offset_y;
-                            draw_shake_offset_x = old_boss_sx;
-                            draw_shake_offset_y = old_boss_sy;
-                            erase_sprite(old_boss_x - 1, old_boss_y - 1, 18, 18);
-                            draw_shake_offset_x = prev_draw_shake_x;
-                            draw_shake_offset_y = prev_draw_shake_y;
-                        }
+                        erase_sprite_with_shake(old_boss_x - 1, old_boss_y - 1, 18, 18, old_boss_sx, old_boss_sy);
                         for (int k = 0; k < MAX_BOSS_BULLETS; k++) {
                             if (boss_bullets[k].active) {
-                                int prev_draw_shake_x = draw_shake_offset_x;
-                                int prev_draw_shake_y = draw_shake_offset_y;
-                                draw_shake_offset_x = old_boss_bullet_sx[k];
-                                draw_shake_offset_y = old_boss_bullet_sy[k];
-                                erase_sprite(old_boss_bullet_x[k], old_boss_bullet_y[k], 4, 4);
-                                draw_shake_offset_x = prev_draw_shake_x;
-                                draw_shake_offset_y = prev_draw_shake_y;
+                                erase_sprite_with_shake(old_boss_bullet_x[k], old_boss_bullet_y[k], 4, 4, old_boss_bullet_sx[k], old_boss_bullet_sy[k]);
                                 boss_bullets[k].active = false;
                             }
                         }
@@ -477,13 +457,7 @@ int main() {
             // Clear normal enemies off the board (using current erase frame offsets)
             for (int i = 0; i < MAX_ENEMIES; i++) {
                 if (enemies[i].active) {
-                    int prev_draw_shake_x = draw_shake_offset_x;
-                    int prev_draw_shake_y = draw_shake_offset_y;
-                    draw_shake_offset_x = old_enemy_sx[i];
-                    draw_shake_offset_y = old_enemy_sy[i];
-                    erase_sprite(old_enemy_x[i], old_enemy_y[i], 8, 8);
-                    draw_shake_offset_x = prev_draw_shake_x;
-                    draw_shake_offset_y = prev_draw_shake_y;
+                    erase_sprite_with_shake(old_enemy_x[i], old_enemy_y[i], 8, 8, old_enemy_sx[i], old_enemy_sy[i]);
                     enemies[i].active = false;
                 }
             }
@@ -595,13 +569,7 @@ int main() {
                         if (dist < 10.0f) {
                             // Event Horizon Annihilation!
                             int prev_draw_shake_x = draw_shake_offset_x;
-                            int prev_draw_shake_y = draw_shake_offset_y;
-                            draw_shake_offset_x = old_enemy_sx[i];
-                            draw_shake_offset_y = old_enemy_sy[i];
-                            erase_sprite(old_enemy_x[i] - 1, old_enemy_y[i] - 1, 10, 10);
-                            draw_shake_offset_x = prev_draw_shake_x;
-                            draw_shake_offset_y = prev_draw_shake_y;
-
+                            erase_sprite_with_shake(old_enemy_x[i], old_enemy_y[i], 8, 8, old_enemy_sx[i], old_enemy_sy[i]);
                             spawn_explosion((int)enemies[i].x, (int)enemies[i].y);
                             enemies[i].x = SCREEN_WIDTH + rand() % 30;
                             enemies[i].base_y = 20 + rand() % (SCREEN_HEIGHT - 40);
@@ -911,11 +879,7 @@ int main() {
                         {
                             int prev_draw_shake_x = draw_shake_offset_x;
                             int prev_draw_shake_y = draw_shake_offset_y;
-                            draw_shake_offset_x = old_bullet_sx[b];
-                            draw_shake_offset_y = old_bullet_sy[b];
-                            erase_sprite(old_bullet_x[b], old_bullet_y[b], 8, 4);
-                            draw_shake_offset_x = prev_draw_shake_x;
-                            draw_shake_offset_y = prev_draw_shake_y;
+                            erase_sprite_with_shake(old_bullet_x[b], old_bullet_y[b], 8, 4, old_bullet_sx[b], old_bullet_sy[b]);
                         }
 
                         if (enemies[e].hp > 1) {
@@ -946,11 +910,7 @@ int main() {
                         {
                             int prev_draw_shake_x = draw_shake_offset_x;
                             int prev_draw_shake_y = draw_shake_offset_y;
-                            draw_shake_offset_x = old_enemy_sx[e];
-                            draw_shake_offset_y = old_enemy_sy[e];
-                            erase_sprite(old_enemy_x[e], old_enemy_y[e], 8, 8); // Clear enemy sprite
-                            draw_shake_offset_x = prev_draw_shake_x;
-                            draw_shake_offset_y = prev_draw_shake_y;
+                            erase_sprite_with_shake(old_enemy_x[e], old_enemy_y[e], 8, 8, old_enemy_sx[e], old_enemy_sy[e]); // Clear enemy sprite
                         }
                         enemies[e].x = SCREEN_WIDTH + rand() % 30;
                         enemies[e].base_y = 24 + rand() % (SCREEN_HEIGHT - 48);
@@ -1017,13 +977,7 @@ int main() {
                     
                     bullets[b].active = false;
                     {
-                        int prev_draw_shake_x = draw_shake_offset_x;
-                        int prev_draw_shake_y = draw_shake_offset_y;
-                        draw_shake_offset_x = old_bullet_sx[b];
-                        draw_shake_offset_y = old_bullet_sy[b];
-                        erase_sprite(old_bullet_x[b], old_bullet_y[b], 8, 4);
-                        draw_shake_offset_x = prev_draw_shake_x;
-                        draw_shake_offset_y = prev_draw_shake_y;
+                        erase_sprite_with_shake(old_bullet_x[b], old_bullet_y[b], 8, 4, old_bullet_sx[b], old_bullet_sy[b]);
                     }
 
                     boss_hp--;
@@ -1045,21 +999,13 @@ int main() {
                         {
                             int prev_draw_shake_x = draw_shake_offset_x;
                             int prev_draw_shake_y = draw_shake_offset_y;
-                            draw_shake_offset_x = old_boss_sx;
-                            draw_shake_offset_y = old_boss_sy;
-                            erase_sprite(old_boss_x - 1, old_boss_y - 1, 18, 18);
-                            draw_shake_offset_x = prev_draw_shake_x;
-                            draw_shake_offset_y = prev_draw_shake_y;
+                            erase_sprite_with_shake(old_boss_x - 1, old_boss_y - 1, 18, 18, old_boss_sx, old_boss_sy);
                         }
                         for (int k = 0; k < MAX_BOSS_BULLETS; k++) {
                             if (boss_bullets[k].active) {
                                 int prev_draw_shake_x = draw_shake_offset_x;
                                 int prev_draw_shake_y = draw_shake_offset_y;
-                                draw_shake_offset_x = old_boss_bullet_sx[k];
-                                draw_shake_offset_y = old_boss_bullet_sy[k];
-                                erase_sprite(old_boss_bullet_x[k], old_boss_bullet_y[k], 4, 4);
-                                draw_shake_offset_x = prev_draw_shake_x;
-                                draw_shake_offset_y = prev_draw_shake_y;
+                                erase_sprite_with_shake(old_boss_bullet_x[k], old_boss_bullet_y[k], 4, 4, old_boss_bullet_sx[k], old_boss_bullet_sy[k]);
                                 boss_bullets[k].active = false;
                             }
                         }
@@ -1135,11 +1081,7 @@ int main() {
                 {
                     int prev_draw_shake_x = draw_shake_offset_x;
                     int prev_draw_shake_y = draw_shake_offset_y;
-                    draw_shake_offset_x = old_powerup_sx;
-                    draw_shake_offset_y = old_powerup_sy;
-                    erase_sprite(old_powerup_x - 1, old_powerup_y - 1, 10, 10);
-                    draw_shake_offset_x = prev_draw_shake_x;
-                    draw_shake_offset_y = prev_draw_shake_y;
+                    erase_sprite_with_shake(old_powerup_x - 1, old_powerup_y - 1, 10, 10, old_powerup_sx, old_powerup_sy);
                 }
                 
                 // Play retro high-pitched chime sound & spark particles
@@ -1257,11 +1199,7 @@ int main() {
                         {
                             int prev_draw_shake_x = draw_shake_offset_x;
                             int prev_draw_shake_y = draw_shake_offset_y;
-                            draw_shake_offset_x = old_boss_bullet_sx[k];
-                            draw_shake_offset_y = old_boss_bullet_sy[k];
-                            erase_sprite(old_boss_bullet_x[k], old_boss_bullet_y[k], 4, 4);
-                            draw_shake_offset_x = prev_draw_shake_x;
-                            draw_shake_offset_y = prev_draw_shake_y;
+                            erase_sprite_with_shake(old_boss_bullet_x[k], old_boss_bullet_y[k], 4, 4, old_boss_bullet_sx[k], old_boss_bullet_sy[k]);
                         }
                         trigger_screenshake(5, 10);
                         spawn_explosion(PLAYER_X, (int)player.y);
@@ -1302,11 +1240,7 @@ int main() {
                     {
                         int prev_draw_shake_x = draw_shake_offset_x;
                         int prev_draw_shake_y = draw_shake_offset_y;
-                        draw_shake_offset_x = old_enemy_bullet_sx[k];
-                        draw_shake_offset_y = old_enemy_bullet_sy[k];
-                        erase_sprite(old_enemy_bullet_x[k], old_enemy_bullet_y[k], 3, 3);
-                        draw_shake_offset_x = prev_draw_shake_x;
-                        draw_shake_offset_y = prev_draw_shake_y;
+                        erase_sprite_with_shake(old_enemy_bullet_x[k], old_enemy_bullet_y[k], 3, 3, old_enemy_bullet_sx[k], old_enemy_bullet_sy[k]);
                     }
                     trigger_screenshake(4, 8);
                     spawn_explosion(PLAYER_X, (int)player.y);
@@ -1348,11 +1282,7 @@ int main() {
                     {
                         int prev_draw_shake_x = draw_shake_offset_x;
                         int prev_draw_shake_y = draw_shake_offset_y;
-                        draw_shake_offset_x = old_enemy_sx[e];
-                        draw_shake_offset_y = old_enemy_sy[e];
-                        erase_sprite(old_enemy_x[e], old_enemy_y[e], 8, 8);
-                        draw_shake_offset_x = prev_draw_shake_x;
-                        draw_shake_offset_y = prev_draw_shake_y;
+                        erase_sprite_with_shake(old_enemy_x[e], old_enemy_y[e], 8, 8, old_enemy_sx[e], old_enemy_sy[e]);
                     }
                     
                     // Respawn enemy immediately
@@ -1429,9 +1359,7 @@ int main() {
         // 2. Erase Player Bullets using stored draw-time shake offset
         for (int i = 0; i < MAX_BULLETS; i++) {
             if (bullet_was_drawn[i]) {
-                draw_shake_offset_x = old_bullet_sx[i];
-                draw_shake_offset_y = old_bullet_sy[i];
-                erase_sprite(old_bullet_x[i] - 1, old_bullet_y[i] - 1, 10, 6);
+                erase_sprite_with_shake(old_bullet_x[i] - 1, old_bullet_y[i] - 1, 10, 6, old_bullet_sx[i], old_bullet_sy[i]);
                 bullet_was_drawn[i] = false;
             }
         }
@@ -1441,9 +1369,7 @@ int main() {
         // 3. Erase Enemies using stored draw-time shake offset
         for (int i = 0; i < MAX_ENEMIES; i++) {
             if (enemy_was_drawn[i]) {
-                draw_shake_offset_x = old_enemy_sx[i];
-                draw_shake_offset_y = old_enemy_sy[i];
-                erase_sprite(old_enemy_x[i] - 1, old_enemy_y[i] - 1, 10, 10);
+                erase_sprite_with_shake(old_enemy_x[i] - 1, old_enemy_y[i] - 1, 10, 10, old_enemy_sx[i], old_enemy_sy[i]);
                 enemy_was_drawn[i] = false;
             }
         }
@@ -1452,12 +1378,10 @@ int main() {
 
         // Erase Boss using stored draw-time shake offset
         if (boss_was_drawn) {
-            draw_shake_offset_x = old_boss_sx;
-            draw_shake_offset_y = old_boss_sy;
             if (current_boss_type == BOSS_VIPER) {
-                erase_sprite(old_boss_x - 2, old_boss_y - 8, 46, 30);
+                erase_sprite_with_shake(old_boss_x - 2, old_boss_y - 8, 46, 30, old_boss_sx, old_boss_sy);
             } else {
-                erase_sprite(old_boss_x - 2, old_boss_y - 2, 20, 20);
+                erase_sprite_with_shake(old_boss_x - 2, old_boss_y - 2, 20, 20, old_boss_sx, old_boss_sy);
             }
             boss_was_drawn = false;
             draw_shake_offset_x = 0;
@@ -1467,9 +1391,7 @@ int main() {
         // Erase Boss Bullets using stored draw-time shake offset
         for (int k = 0; k < MAX_BOSS_BULLETS; k++) {
             if (boss_bullet_was_drawn[k]) {
-                draw_shake_offset_x = old_boss_bullet_sx[k];
-                draw_shake_offset_y = old_boss_bullet_sy[k];
-                erase_sprite(old_boss_bullet_x[k] - 1, old_boss_bullet_y[k] - 1, 8, 6);
+                erase_sprite_with_shake(old_boss_bullet_x[k] - 1, old_boss_bullet_y[k] - 1, 8, 6, old_boss_bullet_sx[k], old_boss_bullet_sy[k]);
                 boss_bullet_was_drawn[k] = false;
             }
         }
@@ -1478,9 +1400,7 @@ int main() {
 
         // 4. Erase Power-up using stored draw-time shake offset
         if (powerup_was_drawn) {
-            draw_shake_offset_x = old_powerup_sx;
-            draw_shake_offset_y = old_powerup_sy;
-            erase_sprite(old_powerup_x - 1, old_powerup_y - 1, 11, 11);
+            erase_sprite_with_shake(old_powerup_x - 1, old_powerup_y - 1, 11, 11, old_powerup_sx, old_powerup_sy);
             powerup_was_drawn = false;
             draw_shake_offset_x = 0;
             draw_shake_offset_y = 0;
@@ -1498,9 +1418,7 @@ int main() {
         // 4b. Erase Enemy Bullets using stored draw-time shake offset
         for (int k = 0; k < MAX_ENEMY_BULLETS; k++) {
             if (enemy_bullet_was_drawn[k]) {
-                draw_shake_offset_x = old_enemy_bullet_sx[k];
-                draw_shake_offset_y = old_enemy_bullet_sy[k];
-                erase_sprite(old_enemy_bullet_x[k] - 1, old_enemy_bullet_y[k] - 1, 6, 5);
+                erase_sprite_with_shake(old_enemy_bullet_x[k] - 1, old_enemy_bullet_y[k] - 1, 6, 5, old_enemy_bullet_sx[k], old_enemy_bullet_sy[k]);
                 enemy_bullet_was_drawn[k] = false;
             }
         }
@@ -1520,15 +1438,18 @@ int main() {
                 draw_rect(radial_blast_x - rad, radial_blast_y - rad, 2, rad * 2 + 2, COLOR_BLACK);
                 draw_rect(radial_blast_x + rad, radial_blast_y - rad, 2, rad * 2 + 2, COLOR_BLACK);
             };
-            int prev_draw_shake_x = draw_shake_offset_x;
-            int prev_draw_shake_y = draw_shake_offset_y;
-            draw_shake_offset_x = old_radial_blast_sx;
-            draw_shake_offset_y = old_radial_blast_sy;
-            erase_ring(r);
-            erase_ring(mr);
-            erase_ring(ir);
-            draw_shake_offset_x = prev_draw_shake_x;
-            draw_shake_offset_y = prev_draw_shake_y;
+            draw_rect_with_shake(radial_blast_x - r, radial_blast_y - r, r * 2 + 2, 2, COLOR_BLACK, old_radial_blast_sx, old_radial_blast_sy);
+            draw_rect_with_shake(radial_blast_x - r, radial_blast_y + r, r * 2 + 2, 2, COLOR_BLACK, old_radial_blast_sx, old_radial_blast_sy);
+            draw_rect_with_shake(radial_blast_x - r, radial_blast_y - r, 2, r * 2 + 2, COLOR_BLACK, old_radial_blast_sx, old_radial_blast_sy);
+            draw_rect_with_shake(radial_blast_x + r, radial_blast_y - r, 2, r * 2 + 2, COLOR_BLACK, old_radial_blast_sx, old_radial_blast_sy);
+            draw_rect_with_shake(radial_blast_x - mr, radial_blast_y - mr, mr * 2 + 2, 2, COLOR_BLACK, old_radial_blast_sx, old_radial_blast_sy);
+            draw_rect_with_shake(radial_blast_x - mr, radial_blast_y + mr, mr * 2 + 2, 2, COLOR_BLACK, old_radial_blast_sx, old_radial_blast_sy);
+            draw_rect_with_shake(radial_blast_x - mr, radial_blast_y - mr, 2, mr * 2 + 2, COLOR_BLACK, old_radial_blast_sx, old_radial_blast_sy);
+            draw_rect_with_shake(radial_blast_x + mr, radial_blast_y - mr, 2, mr * 2 + 2, COLOR_BLACK, old_radial_blast_sx, old_radial_blast_sy);
+            draw_rect_with_shake(radial_blast_x - ir, radial_blast_y - ir, ir * 2 + 2, 2, COLOR_BLACK, old_radial_blast_sx, old_radial_blast_sy);
+            draw_rect_with_shake(radial_blast_x - ir, radial_blast_y + ir, ir * 2 + 2, 2, COLOR_BLACK, old_radial_blast_sx, old_radial_blast_sy);
+            draw_rect_with_shake(radial_blast_x - ir, radial_blast_y - ir, 2, ir * 2 + 2, COLOR_BLACK, old_radial_blast_sx, old_radial_blast_sy);
+            draw_rect_with_shake(radial_blast_x + ir, radial_blast_y - ir, 2, ir * 2 + 2, COLOR_BLACK, old_radial_blast_sx, old_radial_blast_sy);
             radial_blast_drawn_radius = 0;
         }
 
@@ -1577,11 +1498,7 @@ int main() {
         if (helper_drone.active) {
             if (drone_was_drawn) {
                 // Erase at exact position + shake offset it was drawn with last frame
-                draw_shake_offset_x = old_drone_sx;
-                draw_shake_offset_y = old_drone_sy;
-                erase_sprite(old_drone_x - 1, old_drone_y - 1, 8, 8);
-                draw_shake_offset_x = shake_offset_x;
-                draw_shake_offset_y = shake_offset_y;
+                erase_sprite_with_shake(old_drone_x - 1, old_drone_y - 1, 8, 8, old_drone_sx, old_drone_sy);
             }
             int dx = (int)helper_drone.x;
             int dy = (int)helper_drone.y;
@@ -1603,11 +1520,7 @@ int main() {
             old_drone_sy = shake_offset_y;
             drone_was_drawn = true;
         } else if (drone_was_drawn) {
-            draw_shake_offset_x = old_drone_sx;
-            draw_shake_offset_y = old_drone_sy;
-            erase_sprite(old_drone_x - 1, old_drone_y - 1, 8, 8);
-            draw_shake_offset_x = shake_offset_x;
-            draw_shake_offset_y = shake_offset_y;
+            erase_sprite_with_shake(old_drone_x - 1, old_drone_y - 1, 8, 8, old_drone_sx, old_drone_sy);
             drone_was_drawn = false;
         }
 
@@ -1619,11 +1532,7 @@ int main() {
             int bh_x = (int)black_hole.x - 5;
             int bh_y = (int)black_hole.y - 5;
             if (bh_was_drawn) {
-                draw_shake_offset_x = old_bh_sx;
-                draw_shake_offset_y = old_bh_sy;
-                erase_sprite(old_bh_x - 1, old_bh_y - 1, 12, 12);
-                draw_shake_offset_x = shake_offset_x;
-                draw_shake_offset_y = shake_offset_y;
+                erase_sprite_with_shake(old_bh_x - 1, old_bh_y - 1, 12, 12, old_bh_sx, old_bh_sy);
             }
             for (int r = 0; r < 10; r++) {
                 for (int c = 0; c < 10; c++) {
@@ -1639,11 +1548,7 @@ int main() {
             old_bh_sy = shake_offset_y;
             bh_was_drawn = true;
         } else if (bh_was_drawn) {
-            draw_shake_offset_x = old_bh_sx;
-            draw_shake_offset_y = old_bh_sy;
-            erase_sprite(old_bh_x - 1, old_bh_y - 1, 12, 12);
-            draw_shake_offset_x = shake_offset_x;
-            draw_shake_offset_y = shake_offset_y;
+            erase_sprite_with_shake(old_bh_x - 1, old_bh_y - 1, 12, 12, old_bh_sx, old_bh_sy);
             bh_was_drawn = false;
         }
 

@@ -242,6 +242,26 @@ void erase_sprite(int x, int y, int w, int h) {
     draw_rect(x, y, w, h, COLOR_BLACK);
 }
 
+void draw_rect_with_shake(int x, int y, int w, int h, uint16_t color, int shake_x, int shake_y) {
+    int prev_draw_shake_x = draw_shake_offset_x;
+    int prev_draw_shake_y = draw_shake_offset_y;
+    draw_shake_offset_x = shake_x;
+    draw_shake_offset_y = shake_y;
+    draw_rect(x, y, w, h, color);
+    draw_shake_offset_x = prev_draw_shake_x;
+    draw_shake_offset_y = prev_draw_shake_y;
+}
+
+void erase_sprite_with_shake(int x, int y, int w, int h, int shake_x, int shake_y) {
+    int prev_draw_shake_x = draw_shake_offset_x;
+    int prev_draw_shake_y = draw_shake_offset_y;
+    draw_shake_offset_x = shake_x;
+    draw_shake_offset_y = shake_y;
+    erase_sprite(x, y, w, h);
+    draw_shake_offset_x = prev_draw_shake_x;
+    draw_shake_offset_y = prev_draw_shake_y;
+}
+
 void draw_play_icon(int x, int y) {
     for (int col = 0; col < 16; col++) {
         int height = col;
