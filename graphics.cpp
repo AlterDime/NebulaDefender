@@ -1,6 +1,9 @@
 #include "graphics.h"
+#include "game.h"
 #include "sprites.h"
 #include <cstring>
+#include <stdio.h>
+#include <math.h>
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 #include "hardware/gpio.h"
@@ -182,19 +185,51 @@ void draw_sprite_bullet(int x, int y) {
 }
 
 void draw_sprite_boss(int x, int y, BossType type) {
-    for (int row = 0; row < 16; row++) {
-        for (int col = 0; col < 16; col++) {
-            uint16_t color = (type == BOSS_MOTHERSHIP) ? sprite_boss[row][col] : sprite_boss_dreadnought[row][col];
-            if (color != C_TRANS) {
-                draw_rect(x + col, y + row, 1, 1, color);
+    const uint16_t (*b_sprite)[16] = sprite_boss;
+    if (type == BOSS_MOTHERSHIP)       b_sprite = sprite_boss;
+    else if (type == BOSS_DREADNOUGHT) b_sprite = sprite_boss_dreadnought;
+    else if (type == BOSS_PHANTOM)     b_sprite = sprite_boss_phantom;
+    else if (type == BOSS_TITAN)       b_sprite = sprite_boss_titan;
+    else if (type == BOSS_ASTEROID)    b_sprite = sprite_boss_asteroid;
+    else if (type == BOSS_DRAGON)      b_sprite = sprite_boss_dragon;
+    else if (type == BOSS_CHRONO)      b_sprite = sprite_boss_chrono;
+    else if (type == BOSS_NEBULA)      b_sprite = sprite_boss_nebula;
+    else if (type == BOSS_OMEGA)       b_sprite = sprite_boss_omega;
+
+    if (type == BOSS_VIPER) {
+        // Draw Cyber Viper Head
+        for (int row = 0; row < 16; row++) {
+            for (int col = 0; col < 16; col++) {
+                uint16_t color = sprite_boss[row][col];
+                if (color != C_TRANS) {
+                    draw_rect(x + col, y + row, 1, 1, (color == C_CYAN) ? COLOR_RED : color);
+                }
+            }
+        }
+        // Serpentine trailing segments
+        static int viper_wave = 0;
+        viper_wave++;
+        for (int seg = 1; seg <= 3; seg++) {
+            int seg_x = x + (seg * 10);
+            int seg_y = y + (int)(sinf((viper_wave + seg * 12) * 0.15f) * 6.0f);
+            draw_rect(seg_x + 2, seg_y + 2, 8, 8, COLOR_RED);
+            draw_rect(seg_x + 4, seg_y + 4, 4, 4, COLOR_YELLOW);
+        }
+    } else {
+        for (int row = 0; row < 16; row++) {
+            for (int col = 0; col < 16; col++) {
+                uint16_t color = b_sprite[row][col];
+                if (color != C_TRANS) {
+                    draw_rect(x + col, y + row, 1, 1, color);
+                }
             }
         }
     }
 }
 
-void draw_sprite_powerup(int x, int y, const uint16_t sprite[6][6]) {
-    for (int row = 0; row < 6; row++) {
-        for (int col = 0; col < 6; col++) {
+void draw_sprite_powerup(int x, int y, const uint16_t sprite[8][8]) {
+    for (int row = 0; row < 8; row++) {
+        for (int col = 0; col < 8; col++) {
             uint16_t color = sprite[row][col];
             if (color != C_TRANS) {
                 draw_rect(x + col, y + row, 1, 1, color);
@@ -231,19 +266,40 @@ void draw_hud_bar() {
 }
 
 void draw_lives(int current_lives) {
-    // Clear lives area on the HUD panel
-    draw_rect(88, 3, 36, 13, 0x0821);
-    for (int i = 0; i < current_lives; i++) {
-        int hx = 90 + (i * 10);
+    // Clear lives area on the HUD panel (x = 86 to 126)
+    draw_rect(86, 3, 40, 13, 0x0821);
+    if (current_lives <= 5) {
+        for (int i = 0; i < current_lives; i++) {
+            int hx = 88 + (i * 7);
+            int hy = 6;
+            for (int row = 0; row < 5; row++) {
+                for (int col = 0; col < 5; col++) {
+                    uint16_t color = sprite_heart[row][col];
+                    if (color != C_TRANS) {
+                        draw_rect(hx + col, hy + row, 1, 1, color);
+                    }
+                }
+            }
+        }
+    } else {
+        // Multiplier format for > 5 lives: Heart icon + "x" + digit
         int hy = 6;
         for (int row = 0; row < 5; row++) {
             for (int col = 0; col < 5; col++) {
                 uint16_t color = sprite_heart[row][col];
                 if (color != C_TRANS) {
-                    draw_rect(hx + col, hy + row, 1, 1, color);
+                    draw_rect(88 + col, hy + row, 1, 1, color);
                 }
             }
         }
+        // Small 'x'
+        draw_rect(96, 8, 1, 1, COLOR_WHITE);
+        draw_rect(98, 8, 1, 1, COLOR_WHITE);
+        draw_rect(97, 9, 1, 1, COLOR_WHITE);
+        draw_rect(96, 10, 1, 1, COLOR_WHITE);
+        draw_rect(98, 10, 1, 1, COLOR_WHITE);
+        // Live count digit
+        draw_digit(102, 6, current_lives % 10, COLOR_WHITE);
     }
 }
 
@@ -281,6 +337,23 @@ void draw_score(int score) {
     draw_digit(44, 9, hi_hundreds, COLOR_YELLOW);
     draw_digit(50, 9, hi_tens,     COLOR_YELLOW);
     draw_digit(56, 9, hi_ones,     COLOR_YELLOW);
+
+    // Bomb counter indicator in HUD bar (x = 64..84)
+    draw_rect(64, 3, 20, 13, 0x0821); // clear area
+    if (bomb_count > 0) {
+        // Draw 5x5 Bomb Icon in magenta
+        draw_rect(65, 7, 3, 3, COLOR_MAGENTA);
+        draw_rect(66, 6, 1, 1, COLOR_WHITE);
+        draw_rect(67, 5, 1, 1, COLOR_YELLOW); // fuse spark
+        // Small 'x'
+        draw_rect(70, 8, 1, 1, COLOR_WHITE);
+        draw_rect(72, 8, 1, 1, COLOR_WHITE);
+        draw_rect(71, 9, 1, 1, COLOR_WHITE);
+        draw_rect(70, 10, 1, 1, COLOR_WHITE);
+        draw_rect(72, 10, 1, 1, COLOR_WHITE);
+        // Bomb count digit
+        draw_digit(75, 6, bomb_count % 10, COLOR_MAGENTA);
+    }
 }
 
 // Styled boss HP bar: bordered, gradient-colored, with BOSS label
@@ -428,4 +501,48 @@ void draw_gameover_overlay(bool new_best, int frame) {
         uint16_t dot_col = (i == lit) ? C_CYAN : 0x0294;
         draw_rect(44 + i * 9, 133, 5, 4, dot_col);
     }
+}
+
+void draw_pause_overlay() {
+    // Dark navy pause card with neon border (x=12, y=40, w=104, h=70)
+    draw_rect(12, 40, 104, 70, 0x0821);
+    draw_rect(12, 40, 104, 2, C_CYAN);
+    draw_rect(12, 108, 104, 2, C_CYAN);
+    draw_rect(12, 40, 2, 70, C_CYAN);
+    draw_rect(114, 40, 2, 70, C_CYAN);
+
+    draw_text(46, 52, "PAUSED", COLOR_YELLOW);
+    draw_text(46, 53, "PAUSED", COLOR_YELLOW);
+
+    draw_text(22, 74, "PRESS TO RESUME", C_CYAN);
+    draw_text(26, 90, "HOLD TO QUIT", 0x7BEF);
+}
+
+void draw_powerup_badges() {
+    if (shield_active) {
+        draw_rect(65, 3, 3, 5, C_CYAN);
+    }
+}
+
+void draw_stats_overlay() {
+    draw_rect(8, 25, 112, 110, 0x0821);
+    draw_rect(8, 25, 112, 2, COLOR_YELLOW);
+    draw_rect(8, 133, 112, 2, COLOR_YELLOW);
+    draw_rect(8, 25, 2, 110, COLOR_YELLOW);
+    draw_rect(118, 25, 2, 110, COLOR_YELLOW);
+
+    draw_text(25, 32, "ACHIEVEMENTS", COLOR_YELLOW);
+
+    char b1[24], b2[24], b3[24], b4[24];
+    snprintf(b1, sizeof(b1), "BEST SCORE: %d", high_score);
+    snprintf(b2, sizeof(b2), "BOSSES KILLED: %d", total_bosses_defeated);
+    snprintf(b3, sizeof(b3), "MAX COMBO: %dx", highest_combo);
+    snprintf(b4, sizeof(b4), "GAMES PLAYED: %d", total_games_played);
+
+    draw_text(14, 50, b1, COLOR_WHITE);
+    draw_text(14, 66, b2, C_CYAN);
+    draw_text(14, 82, b3, COLOR_YELLOW);
+    draw_text(14, 98, b4, 0x7BEF);
+
+    draw_text(28, 118, "TAP TO CLOSE", COLOR_GREEN);
 }

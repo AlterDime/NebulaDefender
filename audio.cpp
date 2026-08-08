@@ -41,3 +41,16 @@ void update_audio() {
         }
     }
 }
+
+void update_bgm(int frame) {
+    if (audio_timer > 0) return; // Active SFX overrides background music
+    static const uint16_t bassline[16] = {
+        131, 0, 131, 0, 165, 0, 196, 0,
+        131, 0, 147, 0, 165, 0, 175, 0
+    };
+    int step = (frame / 6) % 16;
+    uint16_t note = bassline[step];
+    if (note > 0 && (frame % 6 == 0)) {
+        play_tone(note, 2);
+    }
+}
