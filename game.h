@@ -35,9 +35,12 @@ extern bool spread_shot_active;
 extern int spread_shot_timer;
 extern bool spread_shot_permanent;
 extern HelperDrone helper_drone;
-extern BlackHole black_hole;
+extern bool laser_grid_active;
+extern int laser_grid_timer;
 extern bool overload_active;
 extern int overload_timer;
+extern bool missile_active;
+extern int missile_timer;
 extern int bomb_count;
 extern int combo_count;
 extern int combo_timer;
@@ -80,8 +83,9 @@ extern bool tutorial_bomb_done;
 extern bool tutorial_life_done;
 extern bool tutorial_spread_done;
 extern bool tutorial_drone_done;
-extern bool tutorial_blackhole_done;
+extern bool tutorial_lasergrid_done;
 extern bool tutorial_overload_done;
+extern bool tutorial_missile_done;
 extern bool new_best_achieved;
 
 // Functions

@@ -450,30 +450,16 @@ const uint16_t sprite_powerup_drone[8][8] = {
     {C_TRANS,   C_CYAN,    C_CYAN,    COLOR_YELLOW, COLOR_YELLOW, C_CYAN, C_CYAN, C_TRANS}
 };
 
-// 8x8 Singularity Black Hole Power-up Sprite (Deep Dark Purple / Magenta Singularity Orb)
-const uint16_t sprite_powerup_blackhole[8][8] = {
-    {C_TRANS,       0x380F,      0x780F,      COLOR_MAGENTA, COLOR_MAGENTA, 0x780F,      0x380F,      C_TRANS},
-    {0x380F,        0x780F,      COLOR_MAGENTA, COLOR_WHITE,   COLOR_WHITE,   COLOR_MAGENTA, 0x780F,      0x380F},
-    {0x780F,        COLOR_MAGENTA, 0x0000,      0x0000,        0x0000,        0x0000,        COLOR_MAGENTA, 0x780F},
-    {COLOR_MAGENTA, COLOR_WHITE,   0x0000,      0x0000,        0x0000,        0x0000,        COLOR_WHITE,   COLOR_MAGENTA},
-    {COLOR_MAGENTA, COLOR_WHITE,   0x0000,      0x0000,        0x0000,        0x0000,        COLOR_WHITE,   COLOR_MAGENTA},
-    {0x780F,        COLOR_MAGENTA, 0x0000,      0x0000,        0x0000,        0x0000,        COLOR_MAGENTA, 0x780F},
-    {0x380F,        0x780F,      COLOR_MAGENTA, COLOR_WHITE,   COLOR_WHITE,   COLOR_MAGENTA, 0x780F,      0x380F},
-    {C_TRANS,       0x380F,      0x780F,      COLOR_MAGENTA, COLOR_MAGENTA, 0x780F,      0x380F,      C_TRANS}
-};
-
-// 10x10 In-game Singularity Black Hole Vortex Graphic
-const uint16_t sprite_blackhole_vortex[10][10] = {
-    {C_TRANS,   0x780F,    C_CYAN,    COLOR_MAGENTA, COLOR_MAGENTA, COLOR_MAGENTA, COLOR_MAGENTA, C_CYAN,    0x780F,    C_TRANS},
-    {0x780F,    C_CYAN,    COLOR_MAGENTA, 0x780F,      COLOR_WHITE,   COLOR_WHITE,   0x780F,      COLOR_MAGENTA, C_CYAN,    0x780F},
-    {C_CYAN,    COLOR_MAGENTA, 0x780F,      0x0000,        0x0000,        0x0000,        0x0000,        0x780F,      COLOR_MAGENTA, C_CYAN},
-    {COLOR_MAGENTA, 0x780F,    0x0000,      0x0000,        0x0000,        0x0000,        0x0000,        0x0000,        0x780F,    COLOR_MAGENTA},
-    {COLOR_MAGENTA, COLOR_WHITE, 0x0000,    0x0000,        0x0000,        0x0000,        0x0000,        0x0000,        COLOR_WHITE, COLOR_MAGENTA},
-    {COLOR_MAGENTA, COLOR_WHITE, 0x0000,    0x0000,        0x0000,        0x0000,        0x0000,        0x0000,        COLOR_WHITE, COLOR_MAGENTA},
-    {COLOR_MAGENTA, 0x780F,    0x0000,      0x0000,        0x0000,        0x0000,        0x0000,        0x0000,        0x780F,    COLOR_MAGENTA},
-    {C_CYAN,    COLOR_MAGENTA, 0x780F,      0x0000,        0x0000,        0x0000,        0x0000,        0x780F,      COLOR_MAGENTA, C_CYAN},
-    {0x780F,    C_CYAN,    COLOR_MAGENTA, 0x780F,      COLOR_WHITE,   COLOR_WHITE,   0x780F,      COLOR_MAGENTA, C_CYAN,    0x780F},
-    {C_TRANS,   0x780F,    C_CYAN,    COLOR_MAGENTA, COLOR_MAGENTA, COLOR_MAGENTA, COLOR_MAGENTA, C_CYAN,    0x780F,    C_TRANS}
+// 8x8 Laser Grid Power-up Sprite (Bright Cyan/White Pulsing Grid Core)
+const uint16_t sprite_powerup_lasergrid[8][8] = {
+    {C_CYAN,    COLOR_WHITE, C_CYAN,    COLOR_WHITE, COLOR_WHITE, C_CYAN,    COLOR_WHITE, C_CYAN},
+    {COLOR_WHITE, C_CYAN,    COLOR_WHITE, C_CYAN,    C_CYAN,    COLOR_WHITE, C_CYAN,    COLOR_WHITE},
+    {C_CYAN,    COLOR_WHITE, C_CYAN,    COLOR_WHITE, COLOR_WHITE, C_CYAN,    COLOR_WHITE, C_CYAN},
+    {COLOR_WHITE, C_CYAN,    COLOR_WHITE, COLOR_WHITE, COLOR_WHITE, COLOR_WHITE, C_CYAN,    COLOR_WHITE},
+    {COLOR_WHITE, C_CYAN,    COLOR_WHITE, COLOR_WHITE, COLOR_WHITE, COLOR_WHITE, C_CYAN,    COLOR_WHITE},
+    {C_CYAN,    COLOR_WHITE, C_CYAN,    COLOR_WHITE, COLOR_WHITE, C_CYAN,    COLOR_WHITE, C_CYAN},
+    {COLOR_WHITE, C_CYAN,    COLOR_WHITE, C_CYAN,    C_CYAN,    COLOR_WHITE, C_CYAN,    COLOR_WHITE},
+    {C_CYAN,    COLOR_WHITE, C_CYAN,    COLOR_WHITE, COLOR_WHITE, C_CYAN,    COLOR_WHITE, C_CYAN}
 };
 
 // 8x8 Hyper Overload Power-up Sprite (Lightning Red/Gold Warhead)
@@ -486,6 +472,18 @@ const uint16_t sprite_powerup_overload[8][8] = {
     {COLOR_YELLOW, COLOR_WHITE, COLOR_RED,   COLOR_YELLOW, COLOR_WHITE, COLOR_RED, COLOR_YELLOW, C_TRANS},
     {C_TRANS,   COLOR_YELLOW, COLOR_WHITE, COLOR_RED,   COLOR_YELLOW, COLOR_WHITE, C_TRANS, C_TRANS},
     {C_TRANS,   C_TRANS,   COLOR_YELLOW, COLOR_WHITE, COLOR_YELLOW, C_TRANS, C_TRANS, C_TRANS}
+};
+
+// 8x8 Seeking Missile Power-up Sprite (Neon Orange Rocket Head)
+const uint16_t sprite_powerup_missile[8][8] = {
+    {C_TRANS,   C_TRANS,   C_TRANS,   COLOR_WHITE, COLOR_WHITE, C_TRANS, C_TRANS, C_TRANS},
+    {C_TRANS,   C_TRANS,   C_ORANGE,  COLOR_WHITE, COLOR_WHITE, C_ORANGE,  C_TRANS, C_TRANS},
+    {C_TRANS,   C_ORANGE,  C_ORANGE,  COLOR_RED,   COLOR_RED,   C_ORANGE,  C_ORANGE,  C_TRANS},
+    {C_TRANS,   C_ORANGE,  COLOR_RED, COLOR_WHITE, COLOR_WHITE, COLOR_RED, C_ORANGE,  C_TRANS},
+    {C_TRANS,   C_ORANGE,  C_ORANGE,  COLOR_RED,   COLOR_RED,   C_ORANGE,  C_ORANGE,  C_TRANS},
+    {C_TRANS,   COLOR_WHITE, C_ORANGE, COLOR_RED,   COLOR_RED,   C_ORANGE,  COLOR_WHITE, C_TRANS},
+    {COLOR_YELLOW, C_TRANS, COLOR_YELLOW, C_TRANS, C_TRANS, COLOR_YELLOW, C_TRANS, COLOR_YELLOW},
+    {C_TRANS,   COLOR_RED,  C_TRANS,   COLOR_RED,   COLOR_RED,  C_TRANS,   COLOR_RED,  C_TRANS}
 };
 
 // 10x10 Distant Ringed Gas Giant Planet (Subtle Dim Gold Disk with Indigo Ring)

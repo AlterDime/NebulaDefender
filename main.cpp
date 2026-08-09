@@ -560,42 +560,59 @@ int main() {
             }
         }
 
-        // Singularity Black Hole Vortex (10s = 300 frames)
-        if (black_hole.active) {
-            black_hole.timer--;
-            black_hole.pulse++;
-            if (black_hole.timer <= 0) {
-                black_hole.active = false;
-            } else {
-                // Gravitational Pull & Destruction on all active enemies toward (64, 85)
-                for (int i = 0; i < MAX_ENEMIES; i++) {
-                    if (enemies[i].active) {
-                        float dx = black_hole.x - enemies[i].x;
-                        float dy = black_hole.y - enemies[i].y;
-                        float dist = sqrtf(dx * dx + dy * dy);
-                        if (dist < 10.0f) {
-                            // Event Horizon Annihilation!
-                            int prev_draw_shake_x = draw_shake_offset_x;
-                            erase_sprite_with_shake(old_enemy_x[i], old_enemy_y[i], 8, 8, old_enemy_sx[i], old_enemy_sy[i]);
-                            spawn_explosion((int)enemies[i].x, (int)enemies[i].y);
-                            enemies[i].x = SCREEN_WIDTH + rand() % 30;
-                            enemies[i].base_y = 20 + rand() % (SCREEN_HEIGHT - 40);
-                            enemies[i].y = enemies[i].base_y;
-                            score += 2;
-                            combo_count++;
-                            play_tone(1200, 2);
-                        } else {
-                            enemies[i].x += (dx / (dist + 0.1f)) * 2.2f;
-                            enemies[i].y += (dy / (dist + 0.1f)) * 2.2f;
-                        }
-                    }
-                }
-            }
-        }
-
         static int bgm_frame = 0;
         bgm_frame++;
         update_bgm(bgm_frame);
+
+        // Laser Grid Fire Wall Power-Up (8s = 240 frames)
+        static int laser_grid_draw_x = 0;
+        static bool laser_grid_was_drawn = false;
+        if (laser_grid_active) {
+            laser_grid_timer--;
+            if (laser_grid_timer <= 0) {
+                laser_grid_active = false;
+                laser_grid_was_drawn = false;
+            } else {
+                // Sweeping laser wall moving forward across playfield
+                laser_grid_draw_x = PLAYER_X + 8 + ((240 - laser_grid_timer) * 4) % (SCREEN_WIDTH - PLAYER_X - 8);
+                
+                // Erase previous frame laser grid line if drawn
+                if (laser_grid_was_drawn) {
+                    draw_rect(0, 19, SCREEN_WIDTH, 127, COLOR_BLACK);
+                }
+
+                // Render dynamic high-energy neon cyan/white laser grid wall
+                for (int ly = 19; ly <= 145; ly += 4) {
+                    draw_rect(laser_grid_draw_x, ly, 3, 2, C_CYAN);
+                    draw_rect(laser_grid_draw_x + 1, ly, 1, 2, COLOR_WHITE);
+                }
+                laser_grid_was_drawn = true;
+
+                // Animate hum tone sound
+                if (bgm_frame % 4 == 0) {
+                    play_tone(900 + (laser_grid_draw_x % 300), 2);
+                }
+
+                // Vaporize all enemies in path
+                for (int i = 0; i < MAX_ENEMIES; i++) {
+                    if (enemies[i].active && abs((int)enemies[i].x - laser_grid_draw_x) < 8) {
+                        spawn_explosion((int)enemies[i].x, (int)enemies[i].y);
+                        enemies[i].x = SCREEN_WIDTH + rand() % 30;
+                        enemies[i].base_y = 20 + rand() % (SCREEN_HEIGHT - 40);
+                        enemies[i].y = enemies[i].base_y;
+                        score += 2;
+                        combo_count++;
+                    }
+                }
+                // Damage boss if active
+                if (boss_active && abs((int)boss_x - laser_grid_draw_x) < 16) {
+                    boss_hp--;
+                    spawn_explosion((int)boss_x + rand() % 16, (int)boss_y + rand() % 16);
+                }
+            }
+        } else if (laser_grid_was_drawn) {
+            laser_grid_was_drawn = false;
+        }
 
         // Hyper Overload (Auto rapid fire)
         if (overload_active) {
@@ -604,6 +621,25 @@ int main() {
                 overload_active = false;
             } else if (bgm_frame % 3 == 0) {
                 fire_bullet();
+            }
+        }
+
+        // Seeking Missiles Power-Up Salvo
+        if (missile_active) {
+            missile_timer--;
+            if (missile_timer <= 0) {
+                missile_active = false;
+            } else if (bgm_frame % 12 == 0) {
+                // Spawn a seeking missile
+                for (int b = 0; b < MAX_BULLETS; b++) {
+                    if (!bullets[b].active) {
+                        bullets[b].active = true;
+                        bullets[b].x = PLAYER_X + 6;
+                        bullets[b].y = (int)player.y + 2;
+                        play_tone(1100, 2);
+                        break;
+                    }
+                }
             }
         }
         if (player.y + player.height > SCREEN_HEIGHT) {
@@ -636,8 +672,34 @@ int main() {
             if (bullets[i].active) {
                 old_bullet_x[i] = bullets[i].x;
                 old_bullet_y[i] = bullets[i].y;
+                if (missile_active) {
+                    // Seeking Missile Homing trajectory: steer towards nearest target
+                    float target_x = -1.0f, target_y = -1.0f;
+                    float min_dist = 999.0f;
+                    if (boss_active) {
+                        target_x = boss_x + 8.0f;
+                        target_y = boss_y + 8.0f;
+                    } else {
+                        for (int e = 0; e < MAX_ENEMIES; e++) {
+                            if (enemies[e].active && enemies[e].x >= bullets[i].x - 20) {
+                                float edx = enemies[e].x - bullets[i].x;
+                                float edy = enemies[e].y - bullets[i].y;
+                                float edist = sqrtf(edx * edx + edy * edy);
+                                if (edist < min_dist) {
+                                    min_dist = edist;
+                                    target_x = enemies[e].x + 4.0f;
+                                    target_y = enemies[e].y + 4.0f;
+                                }
+                            }
+                        }
+                    }
+                    if (target_x > 0.0f) {
+                        if (bullets[i].y < target_y) bullets[i].y += 1;
+                        else if (bullets[i].y > target_y) bullets[i].y -= 1;
+                    }
+                }
                 bullets[i].x += 4;
-                if (bullets[i].x >= SCREEN_WIDTH) {
+                if (bullets[i].x >= SCREEN_WIDTH || bullets[i].y < 18 || bullets[i].y > 146) {
                     bullets[i].active = false;
                 }
             }
@@ -1181,16 +1243,23 @@ int main() {
                         tutorial_drone_done = true;
                         show_tutorial_overlay(POWERUP_DRONE);
                     }
-                } else if (collected_type == POWERUP_BLACKHOLE) {
-                    black_hole.active = true;
-                    black_hole.timer = 300; // 10 seconds
-                    black_hole.x = 64.0f;
-                    black_hole.y = 85.0f;
-                    toast_text = "+ BLACK HOLE!";
-                    toast_color = COLOR_MAGENTA;
-                    if (!tutorial_blackhole_done) {
-                        tutorial_blackhole_done = true;
-                        show_tutorial_overlay(POWERUP_BLACKHOLE);
+                } else if (collected_type == POWERUP_LASERGRID) {
+                    laser_grid_active = true;
+                    laser_grid_timer = 240; // 8 seconds duration
+                    toast_text = "+ LASER GRID!";
+                    toast_color = C_CYAN;
+                    if (!tutorial_lasergrid_done) {
+                        tutorial_lasergrid_done = true;
+                        show_tutorial_overlay(POWERUP_LASERGRID);
+                    }
+                } else if (collected_type == POWERUP_MISSILE) {
+                    missile_active = true;
+                    missile_timer = 240; // 8 seconds duration
+                    toast_text = "+ SEEKING MISSILES!";
+                    toast_color = C_ORANGE;
+                    if (!tutorial_missile_done) {
+                        tutorial_missile_done = true;
+                        show_tutorial_overlay(POWERUP_MISSILE);
                     }
                 } else if (collected_type == POWERUP_BOMB) {
                     bomb_count++; // Stacks!
@@ -1551,34 +1620,6 @@ int main() {
         } else if (drone_was_drawn) {
             erase_sprite_with_shake(old_drone_x - 1, old_drone_y - 1, 8, 8, old_drone_sx, old_drone_sy);
             drone_was_drawn = false;
-        }
-
-        // Render Singularity Black Hole Vortex
-        static bool bh_was_drawn = false;
-        static int old_bh_x = 0, old_bh_y = 0;
-        static int old_bh_sx = 0, old_bh_sy = 0;
-        if (black_hole.active) {
-            int bh_x = (int)black_hole.x - 5;
-            int bh_y = (int)black_hole.y - 5;
-            if (bh_was_drawn) {
-                erase_sprite_with_shake(old_bh_x - 1, old_bh_y - 1, 12, 12, old_bh_sx, old_bh_sy);
-            }
-            for (int r = 0; r < 10; r++) {
-                for (int c = 0; c < 10; c++) {
-                    uint16_t col = sprite_blackhole_vortex[r][c];
-                    if (col != C_TRANS) {
-                        draw_rect(bh_x + c, bh_y + r, 1, 1, col);
-                    }
-                }
-            }
-            old_bh_x = bh_x;
-            old_bh_y = bh_y;
-            old_bh_sx = shake_offset_x;
-            old_bh_sy = shake_offset_y;
-            bh_was_drawn = true;
-        } else if (bh_was_drawn) {
-            erase_sprite_with_shake(old_bh_x - 1, old_bh_y - 1, 12, 12, old_bh_sx, old_bh_sy);
-            bh_was_drawn = false;
         }
 
         // Gradient charge bar: green -> yellow -> white, glows when full
