@@ -71,12 +71,12 @@ From the project root:
 cmake -B build
 cmake --build build
 ```
-This generates the target binary file: `build/blink.elf` / `build/blink.uf2`.
+This generates the target binary file: `build/nebuladefender.elf` / `build/nebuladefender.uf2`.
 
 ### Flashing to Hardware
 1. Connect the Raspberry Pi Pico to your computer via USB while holding the **BOOTSEL** button.
 2. Release the button when the `RPI-RP2` drive appears.
-3. Copy `build/blink.uf2` to the `RPI-RP2` volume. The board will automatically reboot and execute the game.
+3. Copy `build/nebuladefender.uf2` to the `RPI-RP2` volume. The board will automatically reboot and execute the game.
 
 ---
 
