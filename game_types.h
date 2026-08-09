@@ -104,6 +104,13 @@ struct SpaceMine {
     bool active;
 };
 
+struct Gem {
+    float x;
+    float y;
+    bool active;
+    int value; // point value (10 or 25)
+};
+
 struct HelperDrone {
     float x;
     float y;

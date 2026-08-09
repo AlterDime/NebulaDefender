@@ -70,6 +70,7 @@ int main() {
     int old_bullet_y[MAX_BULLETS] = {0};
     int old_bullet_sx[MAX_BULLETS] = {0};   // shake offset when bullet was drawn
     int old_bullet_sy[MAX_BULLETS] = {0};
+    bool bullet_was_drawn[MAX_BULLETS] = {false};
     int old_enemy_x[MAX_ENEMIES] = {0};
     int old_enemy_y[MAX_ENEMIES] = {0};
     int old_enemy_sx[MAX_ENEMIES] = {0};    // shake offset when enemy was drawn
@@ -301,20 +302,26 @@ int main() {
             continue;
         }
 
-        // --- STATE: PLAYING ---
+        // Automatic continuous fire rate when holding, plus single tap instant fire
+        // Cooldown decreases as weapon_level increases: Lvl 1 = 12 frames (~2.5 shots/sec), Lvl 4 = 4 frames (~7.5 shots/sec)
+        int fire_cooldown = 14 - (weapon_level * 2);
+        if (fire_cooldown < 4) fire_cooldown = 4;
 
-        // Detect tap (rising edge) to flap and shoot, and hold to charge radial blast
+        if (auto_fire_timer > 0) auto_fire_timer--;
+
+        // Detect tap (rising edge) to flap and shoot, and hold to charge radial blast / auto fire
         if (button_pressed && !last_button_state) {
             player.velocity = JUMP_FORCE;
             fire_bullet();
+            auto_fire_timer = fire_cooldown;
             button_hold_frames = 1;
         } else if (button_pressed && last_button_state) {
+            if (auto_fire_timer == 0) {
+                fire_bullet();
+                auto_fire_timer = fire_cooldown;
+            }
             if (bomb_count > 0) {
                 button_hold_frames++;
-                // Rising pitch hum cue when fully charged
-                if (button_hold_frames == 25) {
-                    // Bomb fully charged — silent on active buzzer
-                }
             }
         } else if (!button_pressed && last_button_state) {
             // Button released! Check if charge blast is triggered
@@ -431,18 +438,18 @@ int main() {
             last_boss_score = (score / 50) * 50; // Anchor last boss score
             boss_encounter_count++;
             
-            // Cycle through all 10 Boss Encounters!
-            int mode_mod = boss_encounter_count % 10;
-            if      (mode_mod == 1) { current_boss_type = BOSS_MOTHERSHIP; boss_max_hp = 15; }
-            else if (mode_mod == 2) { current_boss_type = BOSS_DREADNOUGHT; boss_max_hp = 25; }
-            else if (mode_mod == 3) { current_boss_type = BOSS_VIPER;       boss_max_hp = 30; }
-            else if (mode_mod == 4) { current_boss_type = BOSS_PHANTOM;     boss_max_hp = 35; }
-            else if (mode_mod == 5) { current_boss_type = BOSS_TITAN;       boss_max_hp = 45; }
-            else if (mode_mod == 6) { current_boss_type = BOSS_ASTEROID;    boss_max_hp = 55; }
-            else if (mode_mod == 7) { current_boss_type = BOSS_DRAGON;      boss_max_hp = 65; }
-            else if (mode_mod == 8) { current_boss_type = BOSS_CHRONO;      boss_max_hp = 75; }
-            else if (mode_mod == 9) { current_boss_type = BOSS_NEBULA;      boss_max_hp = 85; }
-            else                    { current_boss_type = BOSS_OMEGA;       boss_max_hp = 100; }
+            // Cycle through Boss Encounters starting from Boss 1 (MOTHERSHIP) with smooth progressive difficulty!
+            int mode_mod = ((boss_encounter_count - 1) % 10) + 1;
+            if      (mode_mod == 1) { current_boss_type = BOSS_MOTHERSHIP; boss_max_hp = 20; }
+            else if (mode_mod == 2) { current_boss_type = BOSS_DREADNOUGHT; boss_max_hp = 30; }
+            else if (mode_mod == 3) { current_boss_type = BOSS_VIPER;       boss_max_hp = 40; }
+            else if (mode_mod == 4) { current_boss_type = BOSS_PHANTOM;     boss_max_hp = 50; }
+            else if (mode_mod == 5) { current_boss_type = BOSS_TITAN;       boss_max_hp = 60; }
+            else if (mode_mod == 6) { current_boss_type = BOSS_ASTEROID;    boss_max_hp = 70; }
+            else if (mode_mod == 7) { current_boss_type = BOSS_DRAGON;      boss_max_hp = 80; }
+            else if (mode_mod == 8) { current_boss_type = BOSS_CHRONO;      boss_max_hp = 90; }
+            else if (mode_mod == 9) { current_boss_type = BOSS_NEBULA;      boss_max_hp = 105; }
+            else                    { current_boss_type = BOSS_OMEGA;       boss_max_hp = 125; }
             boss_hp = boss_max_hp;
             
             boss_x = SCREEN_WIDTH + 10;
@@ -655,31 +662,53 @@ int main() {
             boss_shoot_timer++;
 
             if (current_boss_type == BOSS_MOTHERSHIP) {
-                // Mothership weapon: Single Sniper Bullet
-                if (boss_shoot_timer >= 65) {
+                // Boss 1 Mothership: Fires a steady dual laser volley every 50 frames
+                if (boss_shoot_timer >= 50) {
                     boss_shoot_timer = 0;
+                    int launched = 0;
+                    float vys[2] = {-0.4f, 0.4f};
                     for (int k = 0; k < MAX_BOSS_BULLETS; k++) {
                         if (!boss_bullets[k].active) {
                             boss_bullets[k].active = true;
                             boss_bullets[k].x = boss_x;
                             boss_bullets[k].y = boss_y + 6;
-                            boss_bullets[k].vx = -2.5f;
-                            boss_bullets[k].vy = 0.0f;
-                            play_tone(330, 3);
-                            break;
+                            boss_bullets[k].vx = -2.4f;
+                            boss_bullets[k].vy = vys[launched];
+                            launched++;
+                            if (launched >= 2) break;
                         }
                     }
+                    if (launched > 0) play_tone(330, 3);
+                }
+            } else if (current_boss_type == BOSS_DREADNOUGHT) {
+                // Boss 2 Dreadnought: Fires a 3-bullet spread salvo every 40 frames + spawns scout drones
+                if (boss_shoot_timer % 40 == 0) {
+                    int launched = 0;
+                    float vys[3] = {-0.7f, 0.0f, 0.7f};
+                    for (int k = 0; k < MAX_BOSS_BULLETS; k++) {
+                        if (!boss_bullets[k].active) {
+                            boss_bullets[k].active = true;
+                            boss_bullets[k].x = boss_x;
+                            boss_bullets[k].y = boss_y + 6;
+                            boss_bullets[k].vx = -2.6f;
+                            boss_bullets[k].vy = vys[launched];
+                            launched++;
+                            if (launched >= 3) break;
+                        }
+                    }
+                    if (launched > 0) play_tone(440, 3);
                 }
             } else {
-                // Boss attack logic for all 10 boss types
+                // Boss attack logic for all boss types
                 if (current_boss_type == BOSS_CHRONO) {
-                    if (boss_shoot_timer % 40 == 0) {
+                    if (boss_shoot_timer % 30 == 0) {
                         boss_y = 24.0f + (rand() % (SCREEN_HEIGHT - 56));
                         play_tone(1200, 3);
                     }
                 }
 
-                if (boss_shoot_timer % 55 == 0) {
+                int fire_rate = (current_boss_type == BOSS_VIPER || current_boss_type == BOSS_OMEGA) ? 25 : 35;
+                if (boss_shoot_timer % fire_rate == 0) {
                     int launched = 0;
                     for (int k = 0; k < MAX_BOSS_BULLETS; k++) {
                         if (!boss_bullets[k].active) {
@@ -687,32 +716,62 @@ int main() {
                             boss_bullets[k].x = boss_x;
                             boss_bullets[k].y = boss_y + 6;
 
-                            if (current_boss_type == BOSS_ASTEROID) {
-                                boss_bullets[k].vx = -2.2f;
-                                boss_bullets[k].vy = (launched == 0) ? -0.8f : 0.8f;
-                                launched++;
-                                if (launched >= 2) break;
-                            } else if (current_boss_type == BOSS_DRAGON) {
-                                boss_bullets[k].vx = -2.8f;
-                                boss_bullets[k].vy = (launched == 0) ? -1.2f : ((launched == 1) ? 0.0f : 1.2f);
-                                launched++;
-                                if (launched >= 3) break;
-                            } else if (current_boss_type == BOSS_NEBULA) {
-                                boss_bullets[k].vx = -2.0f;
-                                boss_bullets[k].vy = sinf(boss_shoot_timer * 0.1f) * 1.5f;
-                                launched++;
-                                if (launched >= 1) break;
-                            } else if (current_boss_type == BOSS_OMEGA) {
-                                float angles[4] = {-1.0f, -0.4f, 0.4f, 1.0f};
-                                boss_bullets[k].vx = -2.5f;
+                            if (current_boss_type == BOSS_VIPER) {
+                                // Boss 3 Viper: 4 bullets with dodge gap in middle
+                                float angles[4] = {-1.4f, -0.6f, 0.6f, 1.4f};
+                                boss_bullets[k].vx = -2.4f;
                                 boss_bullets[k].vy = angles[launched];
                                 launched++;
                                 if (launched >= 4) break;
-                            } else {
-                                boss_bullets[k].vx = (launched == 1) ? -2.4f : -2.1f;
-                                boss_bullets[k].vy = (launched == 0) ? -0.5f : ((launched == 1) ? 0.0f : 0.5f);
+                            } else if (current_boss_type == BOSS_PHANTOM) {
+                                // Boss 4 Phantom: 5 bullets with wide dodge lanes
+                                float angles[5] = {-1.6f, -0.8f, 0.0f, 0.8f, 1.6f};
+                                boss_bullets[k].vx = -2.8f;
+                                boss_bullets[k].vy = angles[launched];
                                 launched++;
-                                if (launched >= 3) break;
+                                if (launched >= 5) break;
+                            } else if (current_boss_type == BOSS_TITAN) {
+                                // Boss 5 Titan: 5 heavy bullets with wider lane spacing
+                                float angles[5] = {-1.8f, -0.9f, 0.0f, 0.9f, 1.8f};
+                                boss_bullets[k].vx = -2.2f;
+                                boss_bullets[k].vy = angles[launched];
+                                launched++;
+                                if (launched >= 5) break;
+                            } else if (current_boss_type == BOSS_ASTEROID) {
+                                // Boss 6 Asteroid: 6 bullets with central gap
+                                float angles[6] = {-1.8f, -1.1f, -0.4f, 0.4f, 1.1f, 1.8f};
+                                boss_bullets[k].vx = -2.3f;
+                                boss_bullets[k].vy = angles[launched];
+                                launched++;
+                                if (launched >= 6) break;
+                            } else if (current_boss_type == BOSS_DRAGON) {
+                                // Boss 7 Dragon: 6 fast bullets with wide fan lanes
+                                float angles[6] = {-2.0f, -1.2f, -0.4f, 0.4f, 1.2f, 2.0f};
+                                boss_bullets[k].vx = -2.7f;
+                                boss_bullets[k].vy = angles[launched];
+                                launched++;
+                                if (launched >= 6) break;
+                            } else if (current_boss_type == BOSS_CHRONO) {
+                                // Boss 8 Chrono: 6 bullets with alternating phase spacing
+                                float angles[6] = {-1.9f, -1.1f, -0.3f, 0.3f, 1.1f, 1.9f};
+                                boss_bullets[k].vx = -2.5f;
+                                boss_bullets[k].vy = angles[launched];
+                                launched++;
+                                if (launched >= 6) break;
+                            } else if (current_boss_type == BOSS_NEBULA) {
+                                // Boss 9 Nebula: 7 bullets with smooth sine wave gaps
+                                float angles[7] = {-2.1f, -1.4f, -0.7f, 0.0f, 0.7f, 1.4f, 2.1f};
+                                boss_bullets[k].vx = -2.3f;
+                                boss_bullets[k].vy = angles[launched] + sinf(boss_shoot_timer * 0.12f) * 0.3f;
+                                launched++;
+                                if (launched >= 7) break;
+                            } else if (current_boss_type == BOSS_OMEGA) {
+                                // Boss 10 Omega: 7 bullets with wider fan lanes
+                                float angles[7] = {-2.2f, -1.4f, -0.7f, 0.0f, 0.7f, 1.4f, 2.2f};
+                                boss_bullets[k].vx = -2.6f;
+                                boss_bullets[k].vy = angles[launched];
+                                launched++;
+                                if (launched >= 7) break;
                             }
                         }
                     }
@@ -749,7 +808,7 @@ int main() {
                 boss_bullets[k].x += boss_bullets[k].vx;
                 boss_bullets[k].y += boss_bullets[k].vy;
                 
-                if (boss_bullets[k].x < -5 || boss_bullets[k].y < 0 || boss_bullets[k].y > SCREEN_HEIGHT) {
+                if (boss_bullets[k].x < -5 || boss_bullets[k].y < 18 || boss_bullets[k].y > 146) {
                     boss_bullets[k].active = false;
                 }
             }
@@ -874,13 +933,10 @@ int main() {
                     if (bullets[b].x >= enemies[e].x && bullets[b].x <= enemies[e].x + 8 &&
                         bullets[b].y >= enemies[e].y && bullets[b].y <= enemies[e].y + 8) {
                         
-                        // Hit!
+                        // Hit! Erase bullet sprite cleanly first
+                        erase_sprite_with_shake(old_bullet_x[b] - 1, old_bullet_y[b] - 1, 10, 6, old_bullet_sx[b], old_bullet_sy[b]);
+                        bullet_was_drawn[b] = false;
                         bullets[b].active = false;
-                        {
-                            int prev_draw_shake_x = draw_shake_offset_x;
-                            int prev_draw_shake_y = draw_shake_offset_y;
-                            erase_sprite_with_shake(old_bullet_x[b], old_bullet_y[b], 8, 4, old_bullet_sx[b], old_bullet_sy[b]);
-                        }
 
                         if (enemies[e].hp > 1) {
                             enemies[e].hp--;
@@ -927,6 +983,7 @@ int main() {
                         // Combo streak & floating text popup
                         if (combo_timer > 0) {
                             combo_count++;
+                            if (combo_count > 2) combo_count = 2; // Cap combo multiplier at 2x
                         } else {
                             combo_count = 1;
                         }
@@ -971,14 +1028,17 @@ int main() {
             for (int b = 0; b < MAX_BULLETS; b++) {
                 if (!bullets[b].active) continue;
 
-                // Boss is 16x16, at boss_x, boss_y
-                if (bullets[b].x >= boss_x && bullets[b].x <= boss_x + 16 &&
-                    bullets[b].y >= boss_y && bullets[b].y <= boss_y + 16) {
+                // Boss collision box: check boss type width/height (Viper is 42x24, standard bosses 16x16)
+                int bw = (current_boss_type == BOSS_VIPER) ? 42 : 16;
+                int bh = (current_boss_type == BOSS_VIPER) ? 24 : 16;
+
+                if (bullets[b].x >= boss_x && bullets[b].x <= boss_x + bw &&
+                    bullets[b].y >= boss_y && bullets[b].y <= boss_y + bh) {
                     
+                    // ERASE BULLET FIRST while old_bullet_x/y and bullet_was_drawn state are intact!
+                    erase_sprite_with_shake(old_bullet_x[b] - 1, old_bullet_y[b] - 1, 10, 6, old_bullet_sx[b], old_bullet_sy[b]);
+                    bullet_was_drawn[b] = false;
                     bullets[b].active = false;
-                    {
-                        erase_sprite_with_shake(old_bullet_x[b], old_bullet_y[b], 8, 4, old_bullet_sx[b], old_bullet_sy[b]);
-                    }
 
                     boss_hp--;
                     spawn_explosion(bullets[b].x, bullets[b].y);
@@ -1092,44 +1152,23 @@ int main() {
 
                 int dur = (item_dur > 0) ? item_dur : get_powerup_duration(score);
 
-                if (collected_type == POWERUP_SHIELD) {
-                    shield_active = true;
-                    shield_timer = dur;
-                    if (dur >= 9000)      toast_text = "+ SHIELD (5m)!";
-                    else if (dur >= 6300) toast_text = "+ SHIELD (3.5m)!";
-                    else if (dur >= 3600) toast_text = "+ SHIELD (2m)!";
-                    else if (dur >= 1800) toast_text = "+ SHIELD (60s)!";
-                    else                  toast_text = "+ SHIELD (30s)!";
-                    toast_color = C_CYAN;
-                    if (!tutorial_shield_done) {
-                        tutorial_shield_done = true;
-                        show_tutorial_overlay(POWERUP_SHIELD);
-                    }
-                } else if (collected_type == POWERUP_DOUBLE) {
-                    double_shot_active = true;
-                    double_shot_timer = dur;
-                    if (dur >= 9000)      toast_text = "+ DUAL GUN (5m)!";
-                    else if (dur >= 6300) toast_text = "+ DUAL GUN (3m)!";
-                    else if (dur >= 3600) toast_text = "+ DUAL GUN (2m)!";
-                    else if (dur >= 1800) toast_text = "+ DUAL GUN (60s)!";
-                    else                  toast_text = "+ DUAL GUN (30s)!";
-                    toast_color = COLOR_YELLOW;
+                if (collected_type == POWERUP_DOUBLE || collected_type == POWERUP_SPREAD || collected_type == POWERUP_OVERLOAD) {
+                    if (weapon_level < 4) weapon_level++;
+                    if (weapon_level == 2)      { toast_text = "+ WEAPON LVL 2 (DUAL)"; toast_color = COLOR_YELLOW; }
+                    else if (weapon_level == 3) { toast_text = "+ WEAPON LVL 3 (SPREAD)"; toast_color = 0xFD20; }
+                    else                        { toast_text = "+ WEAPON LVL 4 (HYPER!)"; toast_color = COLOR_RED; }
                     if (!tutorial_double_done) {
                         tutorial_double_done = true;
                         show_tutorial_overlay(POWERUP_DOUBLE);
                     }
-                } else if (collected_type == POWERUP_SPREAD) {
-                    spread_shot_active = true;
-                    spread_shot_timer = dur;
-                    if (dur >= 9000)      toast_text = "+ SPREAD (5m)!";
-                    else if (dur >= 6300) toast_text = "+ SPREAD (3m)!";
-                    else if (dur >= 3600) toast_text = "+ SPREAD (2m)!";
-                    else if (dur >= 1800) toast_text = "+ SPREAD (60s)!";
-                    else                  toast_text = "+ SPREAD (30s)!";
-                    toast_color = 0xFD20; // Orange
-                    if (!tutorial_spread_done) {
-                        tutorial_spread_done = true;
-                        show_tutorial_overlay(POWERUP_SPREAD);
+                } else if (collected_type == POWERUP_SHIELD) {
+                    shield_active = true;
+                    shield_timer = dur;
+                    toast_text = "+ SHIELD MATRIX!";
+                    toast_color = C_CYAN;
+                    if (!tutorial_shield_done) {
+                        tutorial_shield_done = true;
+                        show_tutorial_overlay(POWERUP_SHIELD);
                     }
                 } else if (collected_type == POWERUP_DRONE) {
                     helper_drone.active = true;
@@ -1152,15 +1191,6 @@ int main() {
                     if (!tutorial_blackhole_done) {
                         tutorial_blackhole_done = true;
                         show_tutorial_overlay(POWERUP_BLACKHOLE);
-                    }
-                } else if (collected_type == POWERUP_OVERLOAD) {
-                    overload_active = true;
-                    overload_timer = 240; // 8 seconds
-                    toast_text = "+ HYPER OVERLOAD";
-                    toast_color = COLOR_RED;
-                    if (!tutorial_overload_done) {
-                        tutorial_overload_done = true;
-                        show_tutorial_overlay(POWERUP_OVERLOAD);
                     }
                 } else if (collected_type == POWERUP_BOMB) {
                     bomb_count++; // Stacks!
@@ -1347,7 +1377,6 @@ int main() {
         draw_shake_offset_y = 0;
 
         // State-machine auto-cleaning tracking flags
-        static bool bullet_was_drawn[MAX_BULLETS] = {false};
         static bool enemy_was_drawn[MAX_ENEMIES] = {false};
         static bool enemy_bullet_was_drawn[MAX_ENEMY_BULLETS] = {false};
         static bool boss_bullet_was_drawn[MAX_BOSS_BULLETS] = {false};
@@ -1814,7 +1843,7 @@ int main() {
             radial_blast_drawn_radius = new_radius;
         }
 
-        // HUD: always drawn in un-shaked mode so it never jiggles
+        // HUD Layer: always rendered unconditionally in un-shaked mode to fix border artifacts
         draw_shake_offset_x = 0;
         draw_shake_offset_y = 0;
         draw_hud_bar();

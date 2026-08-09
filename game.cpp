@@ -17,8 +17,11 @@ Enemy enemies[MAX_ENEMIES];
 PowerUpItem power_up;
 BossBullet boss_bullets[MAX_BOSS_BULLETS];
 EnemyBullet enemy_bullets[MAX_ENEMY_BULLETS];
+Gem gems[MAX_GEMS];
 
 // HUD & State definitions
+int weapon_level = 1;         // Stacking weapon upgrade level (1 = single, 2 = dual, 3 = spread, 4 = quad hyper)
+int auto_fire_timer = 0;      // Cooldown timer for continuous fire rate
 GameMode selected_mode = MODE_NORMAL;
 int score = 0;
 int lives = 3;
@@ -352,6 +355,8 @@ void reset_game() {
     player.velocity = 0;
     score = 0;
     lives = 3;
+    weapon_level = 1;
+    auto_fire_timer = 0;
     shield_active = false;
     shield_timer = 0;
     shield_permanent = false;
@@ -373,6 +378,10 @@ void reset_game() {
     power_up.active = false;
     power_up.duration_frames = 0;
     total_games_played++;
+
+    for (int g = 0; g < MAX_GEMS; g++) {
+        gems[g].active = false;
+    }
 
     // Reset Boss parameters
     boss_active = false;
@@ -406,10 +415,10 @@ void reset_game() {
 
     for (int i = 0; i < MAX_ENEMIES; i++) {
         enemies[i].active = true;
-        enemies[i].x = SCREEN_WIDTH + 30 + (i * 55);
-        enemies[i].base_y = 24 + rand() % (SCREEN_HEIGHT - 48);
+        enemies[i].x = SCREEN_WIDTH + 30 + (i * 35);
+        enemies[i].base_y = 24 + (i % 3) * 36;
         enemies[i].y = enemies[i].base_y;
-        enemies[i].speed = 0.8f + (rand() % 80) / 100.0f;
+        enemies[i].speed = 0.8f + (rand() % 60) / 100.0f;
         enemies[i].dived = false;
         enemies[i].shoot_cooldown = 40 + rand() % 80;
         
@@ -426,12 +435,28 @@ void reset_game() {
 }
 
 void fire_bullet() {
+    int active_lvl = weapon_level;
+    if (spread_shot_active || overload_active) active_lvl = 4;
+    else if (double_shot_active && active_lvl < 2) active_lvl = 2;
 
-    if (spread_shot_active) {
-        // 3x Spread Shot: up to 24 bullets on screen simultaneously (8 salvos of 3)
+    if (active_lvl >= 4) {
+        // Level 4 (Hyper Quad Salvo): 4 parallel bullets
+        int spawned = 0;
+        int offsets[4] = {0, 2, 5, 7};
+        for (int i = 0; i < MAX_BULLETS; i++) {
+            if (!bullets[i].active) {
+                bullets[i].x = PLAYER_X + player.width;
+                bullets[i].y = (int)player.y + offsets[spawned];
+                bullets[i].active = true;
+                spawned++;
+                if (spawned == 4) break;
+            }
+        }
+    } else if (active_lvl == 3) {
+        // Level 3 (Spread Cannon): 3 diagonal/spread bullets
         int spawned = 0;
         int offsets[3] = {1, 4, 7};
-        for (int i = 0; i < 24; i++) {
+        for (int i = 0; i < MAX_BULLETS; i++) {
             if (!bullets[i].active) {
                 bullets[i].x = PLAYER_X + player.width;
                 bullets[i].y = (int)player.y + offsets[spawned];
@@ -440,10 +465,10 @@ void fire_bullet() {
                 if (spawned == 3) break;
             }
         }
-    } else if (double_shot_active) {
-        // 2x Dual Gun: up to 16 bullets on screen simultaneously (8 salvos of 2)
+    } else if (active_lvl == 2) {
+        // Level 2 (Dual Blaster): 2 parallel bullets
         int spawned = 0;
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < MAX_BULLETS; i++) {
             if (!bullets[i].active) {
                 bullets[i].x = PLAYER_X + player.width;
                 bullets[i].y = (int)player.y + (spawned == 0 ? 1 : 6);
@@ -453,8 +478,8 @@ void fire_bullet() {
             }
         }
     } else {
-        // 1x Single Gun: up to 8 bullets on screen simultaneously (8 single shots)
-        for (int i = 0; i < 8; i++) {
+        // Level 1 (Standard Single Blaster)
+        for (int i = 0; i < MAX_BULLETS; i++) {
             if (!bullets[i].active) {
                 bullets[i].x = PLAYER_X + player.width;
                 bullets[i].y = (int)player.y + player.height / 2;

@@ -1,108 +1,102 @@
 # Nebula Defender 🚀
-A fast-paced, retro-style space shooter built for the **Raspberry Pi Pico** microcontroller, designed to run on custom retro console hardware (like the PicoNES board).
 
-Nebula Defender features arcade flappy-bird style flight physics, responsive graphics rendering, non-blocking chiptune audio, progressive difficulty scaling, double-boss cycles, and flash memory persistence.
+A fast-paced, 1-button arcade space shooter built for the **Raspberry Pi Pico (RP2040)** microcontroller, designed for custom retro console hardware (such as the PicoNES board) with ST7735 SPI displays and active piezo audio.
 
----
-
-## 🎮 Gameplay & Controls
-* **Tap Button:** Flap upwards against flight gravity and fire forward laser projectiles.
-* **Hold Button:** Charges your **Smart Bomb** (Radial Blast) once a bomb power-up is picked up.
-* **Release Button:** Detonates the Smart Bomb when fully charged, clearing the screen of standard enemies or dealing massive damage ($5\text{ HP}$) to Bosses.
+Nebula Defender combines arcade flappy-bird style flight gravity controls with classic shoot-'em-up mechanics, progressive 10-boss cycle progression, stacking weapon upgrades, smart bomb charge blasts, and persistent high-score flash memory storage.
 
 ---
 
-## ✨ Features
-1. **Flappy Flight Mechanics:** Gravity pulls your ship down continuously. Flap upwards to navigate lanes and dodge obstacles.
-2. **First-Time Tutorials:** When you collect a power-up for the first time (**Shield**, **Double Shot**, or **Smart Bomb**), the game pauses and draws a clean dialog box explaining the new mechanic.
-3. **Double Boss Cycle:** A boss wave spawns every $50$ points, alternating between:
-   * **The Mothership ($15\text{ HP}$):** Rapid vertical drift; shoots sniper bullets.
-   * **The Dreadnought Carrier ($25\text{ HP}$):** Slow movement; shoots triple spread bullets and launches combat drones from its deck.
-4. **Locked-Aim Divers:** Divers detect your position, lock onto your Y-coordinate at the dash instant, and charge straight down that trajectory, allowing you to timing-dodge their dashes.
-5. **Shooter Aliens:** Standard red/yellow Shooters glide in from the right and fire small yellow projectiles that you must weave around.
-6. **Progressive Enemy Unlocking:** Difficulty scales intelligently by unlocking harder enemies (**Scouts** $\rightarrow$ **Bombers** $\rightarrow$ **Chargers** $\rightarrow$ **Divers** $\rightarrow$ **Shooters**) as your score increases, rather than simply scaling game speed.
-7. **High-Score Persistence:** High scores are saved directly to the Pico's onboard Flash memory and persist across power-offs.
-8. **Juicy Feedback:** Includes dynamic chiptune sfx, 2D particle explosions, engine thrust plumes, and screen shake.
+## 🕹️ Controls & Single-Button Gameplay
+
+Designed specifically for an authentic **1-Button Retro Arcade** experience:
+
+* **Single Tap:** Flap upwards against gravity and fire forward laser projectiles.
+* **Continuous Holding:** Activates automatic progressive firing while holding altitude, and charges your **Smart Bomb** (once picked up).
+* **Release Button:** Detonates a fully charged **Smart Bomb** (Radial Blast), unleashing a screen-clearing shockwave that destroys standard enemies or deals heavy damage ($5\text{ HP}$) to Bosses.
 
 ---
 
-## 📁 Repository Structure
-The codebase has been refactored from a single monolithic file into a modular structure:
-* `constants.h` – Standardizes hardware configurations, screen coordinates, pin-outs, and RGB565 color definitions.
-* `sprites.h` – Stores 8x8 and 16x16 pixel-art bitmaps (ship, heart, enemies, bosses, power-ups) and character fonts.
-* `game_types.h` – Core structures and enum blueprints (entities, bullets, states).
-* `graphics.h` / `graphics.cpp` – Low-level SPI TFT screen drivers, text overlays, and drawing functions.
-* `audio.h` / `audio.cpp` – Non-blocking PWM chiptune audio player.
-* `effects.h` / `effects.cpp` – Coordinates starfields, particle physics, and camera screenshake.
-* `game.h` / `game.cpp` – Holds global variables, progressive selectors, flash saving, and reset states.
-* `main.cpp` – Core system configurations, game state routing, and the main game loops.
+## ✨ Key Features
+
+1. **Single-Button Flight & Combat Engine:** Flappy-style arcade gravity physics combined with tap/hold auto-fire and charge-up tactical smart bomb mechanics.
+2. **Stacking Weapon Level System ($1\rightarrow4$):**
+   * **Level 1 (Starting Weapon):** Low, deliberate fire rate (~2.5 shots/sec) single blaster.
+   * **Level 2 (Dual Cannon):** Moderate fire rate twin parallel lasers.
+   * **Level 3 (Spread Cannon):** Fast 3-way spread salvoes.
+   * **Level 4 (Hyper Quad Salvo):** High-speed 4-stream quad plasma barrage (~7.5 shots/sec).
+3. **10-Boss Encounter Progression:** Boss encounters trigger progressively with unique attack patterns and scaled HP:
+   1. **Mothership ($20\text{ HP}$):** Dual laser volley.
+   2. **Dreadnought ($30\text{ HP}$):** 3-bullet spread salvoes & scout drone launches.
+   3. **Viper ($40\text{ HP}$):** Fast 4-bullet fan spread with dodge gaps.
+   4. **Phantom ($50\text{ HP}$):** 5-bullet stealth pulse salvoes.
+   5. **Titan ($60\text{ HP}$):** 5-bullet heavy wide fan.
+   6. **Asteroid ($70\text{ HP}$):** 6-bullet barrage with central gap.
+   7. **Dragon ($80\text{ HP}$):** 6-bullet high-velocity fiery fan.
+   8. **Chrono ($90\text{ HP}$):** Teleportation phase shifts + 6-bullet barrage.
+   9. **Nebula ($105\text{ HP}$):** 7-bullet oscillating sine wave pattern.
+   10. **Omega ($125\text{ HP}$):** 7-bullet final boss barrage with wide dodge corridors.
+4. **Balanced Scoring & Multipliers:**
+   * Enemy kill streak combo timer ($1.5\text{s}$ window) with capped **2x maximum multiplier** to keep scoring balanced.
+   * Boss defeat bonus (+5 points).
+5. **Synchronized Wave Formations:** Enemies spawn in structured wave formations across 3 vertical flight corridors.
+6. **Robust Display Protection:** Hard boundary clipping in `graphics.cpp` prevents screenshake camera offsets or bullet erases from bleeding over or corrupting the Top HUD Bar (`Y 0..17`) or Bottom Boss HP Bar (`Y 148..160`).
+7. **Flash Memory Persistence:** High scores, boss defeats, games played, and peak combo records persist across power cycles using non-volatile flash sector storage.
+
+---
+
+## 📁 Codebase Architecture
+
+Modular C++ codebase structured for resource-constrained microcontrollers:
+
+* [`constants.h`](file:///Users/akshu/Downloads/PicoNES/constants.h) – Standardizes hardware pinouts (SPI0, GPIOs), screen boundaries, gravity, and RGB565 color definitions.
+* [`sprites.h`](file:///Users/akshu/Downloads/PicoNES/sprites.h) – Pixel art bitmaps (8x8, 16x16, 42x24) for player ship, enemies, bosses, power-ups, fonts, and icons.
+* [`game_types.h`](file:///Users/akshu/Downloads/PicoNES/game_types.h) – Data structures and enums (`Player`, `Bullet`, `Enemy`, `BossBullet`, `EnemyType`, `BossType`, `PowerUpType`).
+* [`graphics.h`](file:///Users/akshu/Downloads/PicoNES/graphics.h) / [`graphics.cpp`](file:///Users/akshu/Downloads/PicoNES/graphics.cpp) – Optimized SPI ST7735 TFT display driver, playfield clipping, text rendering, and HUD overlays.
+* [`audio.h`](file:///Users/akshu/Downloads/PicoNES/audio.h) / [`audio.cpp`](file:///Users/akshu/Downloads/PicoNES/audio.cpp) – Non-blocking PWM chiptune sound effects engine.
+* [`effects.h`](file:///Users/akshu/Downloads/PicoNES/effects.h) / [`effects.cpp`](file:///Users/akshu/Downloads/PicoNES/effects.cpp) – Dynamic multi-layer parallax starfields, particle physics explosions, thrust plumes, and camera screenshake.
+* [`game.h`](file:///Users/akshu/Downloads/PicoNES/game.h) / [`game.cpp`](file:///Users/akshu/Downloads/PicoNES/game.cpp) – Game state variables, progressive enemy/power-up unlock logic, flash saving, and reset routines.
+* [`main.cpp`](file:///Users/akshu/Downloads/PicoNES/main.cpp) – System initialization, main game loop router, collision detection, and dual-stage render pipeline.
 
 ---
 
 ## 🛠️ Build & Flash Instructions
 
 ### Prerequisites
-Make sure you have the **Raspberry Pi Pico SDK** installed and configured in your environment.
+* **Raspberry Pi Pico SDK** installed and configured (`PICO_SDK_PATH`).
+* **CMake** (v3.13+) and a C/C++ cross-compiler toolchain (`arm-none-eabi-g++`).
 
-### Compile
-1. Create a `build` directory inside the project root folder:
-   ```bash
-   mkdir build && cd build
-   ```
-2. Run CMake and build using Ninja/Make:
-   ```bash
-   cmake ..
-   ninja
-   ```
-3. This generates `blink.uf2` in the build folder.
+### Build Command
+From the project root:
+```bash
+cmake -B build
+cmake --build build
+```
+This generates the target binary file: `build/blink.elf` / `build/blink.uf2`.
 
-### Flash
-1. Press and hold the **BOOTSEL** button on your Raspberry Pi Pico.
-2. Connect the Pico to your computer via USB.
-3. Release the button; the Pico will mount as a mass storage device named `RPI-RP2`.
-4. Drag and drop `blink.uf2` onto the `RPI-RP2` drive. The Pico will reboot and run the game automatically!
+### Flashing to Hardware
+1. Connect the Raspberry Pi Pico to your computer via USB while holding the **BOOTSEL** button.
+2. Release the button when the `RPI-RP2` drive appears.
+3. Copy `build/blink.uf2` to the `RPI-RP2` volume. The board will automatically reboot and execute the game.
 
 ---
 
-## 🧠 Developer Knowledge Transfer (KT) Guide
+## 🧠 Technical Deep-Dive
 
-Welcome to the project! This guide explains the core systems, optimization designs, and algorithms implemented in Nebula Defender to help you get up to speed.
+### 1. Dual-Stage Rendering (Flicker-Free, No Double-Buffer)
+Due to RP2040 SRAM constraints ($264\text{ KB}$ SRAM vs $40\text{ KB}$ required for a single 16-bit $128 \times 160$ frame buffer), Nebula Defender avoids heavy full-frame RAM buffers. Instead, it uses a **coordinate tracking erase-and-draw cycle**:
+* **Tracking:** Moving entities store their previous frame's rendered screen position and camera shake in `old_*` arrays.
+* **Erase Pass:** The engine erases the exact footprint of previous sprites using `old_*` positions before computing new positions.
+* **Draw Pass:** Redraws active entities at their new coordinates with current camera shake. This guarantees 30 FPS flicker-free rendering without tearing.
 
-### 1. Code Architecture & Execution Flow
-The entry point is `main()` in [main.cpp](file:///Users/akshu/Downloads/PicoNES/blink/main.cpp). The flow operates as follows:
-1. **Peripherals Init:** Sets up SDK stdio, SPI at 15MHz (TFT screen communication), GPIO button pins with pull-ups, and the hardware PWM slice for the buzzer.
-2. **Flash Load:** Calls `load_high_score()` which reads from the Pico's last 4KB flash sector to populate the `high_score` global variable.
-3. **Reset State:** Invokes `reset_game()`, defining player coordinates, resetting enemy speeds, and calling `init_starfield()`.
-4. **State Machine Loop:** Runs a 30ms-throttled `while(true)` loop representing the router:
-   * **`STATE_INTRO`:** Draws the animated title and waits for GP2 button releases.
-   * **`STATE_PLAYING`:** Resolves gravity, ticks entities (bullets, enemies, particles), computes boundaries and overlaps, erases previous coordinates, and draws new frame coordinates.
-   * **`STATE_GAMEOVER`:** Updates scores and flash persistence.
+### 2. Hard Layer Boundary Protection
+To prevent screenshake camera offsets or bullet erases from corrupting the fixed HUD overlay, `draw_rect()` in `graphics.cpp` enforces hard playfield boundary clipping (`Y = 18` to `148`). The Top HUD Bar and Bottom Boss HP Bar are rendered in static (un-shaked) mode at the end of every frame.
 
-### 2. Dual-Stage Rendering (Flicker-Free, No Double-Buffer)
-Microcontrollers usually lack enough SRAM for a full double-buffered $128 \times 160 \times 16$-bit ($40\text{ KB}$) frame buffer. To prevent display flickering and visual artifacts, Nebula Defender uses a **coordinate tracking erase-and-draw cycle**:
-* **Tracking:** Every moving object caches its drawn coordinate in `old_*` array pointers (e.g. `old_enemy_x/y`).
-* **Erase Pass:** At the start of the frame render, the engine writes black rectangles over the `old_*` coordinates, cleanly purging trails.
-* **Camera Offset Shift:** Because camera screenshake continuously offsets coordinates, the Erase Pass is forced to use the previous frame's screenshake offset (`o_shake_x/y`) to erase trails. The Draw Pass then calculates the new screenshake offset (`shake_offset_x/y`) to draw the sprites.
-* **Draw Pass:** Sprites are redrawn at their current `x/y` coordinates. Because erase and draw occurrences happen in quick succession, no sprite flickering occurs.
-
-### 3. Non-Blocking PWM Audio
-The audio synthesizer runs in a non-blocking mode within the main game loop, ensuring sound effects don't stutter frame updates:
-* `play_tone(frequency, duration_frames)` initializes the PWM divider for GP15, sets duty cycle to 50% for a clean square wave, and sets `audio_timer = duration_frames`.
-* Each tick, `update_audio()` counts down `audio_timer`. Once it reaches zero, it calls `stop_tone()`, silencing GP15.
-
-### 4. Non-Overlapping Flash Memory Persistence
-High scores are stored directly in flash memory:
-* **Storage Offset:** `#define FLASH_TARGET_OFFSET (2048 * 1024 - 4096)`. This points to the final 4KB sector of a 2MB flash space, well away from the compiled `.uf2` binary.
-* **Write Lock:** Flash programming requires blocking interrupts. We disable interrupts using `save_and_disable_interrupts()`, erase the sector via `flash_range_erase()`, write the payload with `flash_range_program()`, and re-enable interrupts via `restore_interrupts()`.
-
-### 5. Enemy Pathing Algorithms
-* **Bombers (`ENEMY_BOMBER`):** Y-coordinate varies continuously using a sine wave function matching its current X-coordinate:
-  $$\text{y} = \text{base\_y} + \sin(\text{x} \times 0.08) \times 15.0$$
-* **Divers (`ENEMY_DIVER`):** When the Diver's X-coordinate enters the Y-lock range (within 65 pixels of the player), it captures the player's Y-coordinate at that exact instant into `base_y` and sets `dived = true`. It then smoothly glides to that static target point using simple interpolation:
-  $$\text{y} += (\text{target\_y} - \text{y}) \times 0.1$$
-  This allows players to easily dodge the dash by changing Y-altitude right after the lock triggers.
+### 3. Flash Memory Persistence
+High scores and stats are persisted in the RP2040's onboard Flash memory:
+* **Target Sector:** `#define FLASH_TARGET_OFFSET (2048 * 1024 - 4096)` (the final 4KB sector of 2MB Flash, safely isolated from firmware binaries).
+* **Write Protocol:** Disables interrupts (`save_and_disable_interrupts()`), erases the sector (`flash_range_erase()`), programs 256-byte flash pages (`flash_range_program()`), and restores interrupts (`restore_interrupts()`).
 
 ---
 
 ## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.

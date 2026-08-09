@@ -64,6 +64,20 @@ void draw_rect(int x, int y, int w, int h, uint16_t color) {
     if (y + h > SCREEN_HEIGHT) h = SCREEN_HEIGHT - y;
     if (w <= 0 || h <= 0) return;
 
+    // Protect Top HUD Bar (Y 0..17) from playfield screenshake bleeding
+    if (draw_shake_offset_x != 0 || draw_shake_offset_y != 0) {
+        if (y < 18) {
+            int clip = 18 - y;
+            y += clip;
+            h -= clip;
+            if (h <= 0) return;
+        }
+        if (y + h > 148) {
+            h = 148 - y;
+            if (h <= 0) return;
+        }
+    }
+
     set_addr_window(x, y, x + w - 1, y + h - 1);
 
     gpio_put(PIN_DC, 1);
