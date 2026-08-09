@@ -1726,10 +1726,17 @@ int main() {
 
         // 4. Draw Power-up Item with dynamic glowing aura
         if (power_up.active) {
-            const uint16_t (*p_sprite)[8] = (power_up.type == POWERUP_SHIELD) ? sprite_powerup_shield : 
-                ((power_up.type == POWERUP_DOUBLE) ? sprite_powerup_double : 
-                ((power_up.type == POWERUP_BOMB) ? sprite_powerup_bomb : sprite_powerup_life));
-            
+            const uint16_t (*p_sprite)[8] =
+                (power_up.type == POWERUP_SHIELD) ? sprite_powerup_shield :
+                (power_up.type == POWERUP_DOUBLE) ? sprite_powerup_double :
+                (power_up.type == POWERUP_BOMB) ? sprite_powerup_bomb :
+                (power_up.type == POWERUP_LIFE) ? sprite_powerup_life :
+                (power_up.type == POWERUP_SPREAD) ? sprite_powerup_spread :
+                (power_up.type == POWERUP_DRONE) ? sprite_powerup_drone :
+                (power_up.type == POWERUP_LASERGRID) ? sprite_powerup_lasergrid :
+                (power_up.type == POWERUP_OVERLOAD) ? sprite_powerup_overload :
+                sprite_powerup_missile;
+
             draw_sprite_powerup((int)power_up.x, power_up.y, p_sprite);
 
             // Dynamic glowing 1px pulsing border aura around 8x8 power-up
@@ -1740,6 +1747,11 @@ int main() {
             else if (power_up.type == POWERUP_DOUBLE) aura_col = (p_aura_counter / 4 % 2 == 0) ? COLOR_YELLOW : 0x8400;
             else if (power_up.type == POWERUP_BOMB)   aura_col = (p_aura_counter / 4 % 2 == 0) ? COLOR_MAGENTA : 0x8010;
             else if (power_up.type == POWERUP_LIFE)   aura_col = (p_aura_counter / 4 % 2 == 0) ? COLOR_GREEN : 0x03E0;
+            else if (power_up.type == POWERUP_SPREAD) aura_col = (p_aura_counter / 4 % 2 == 0) ? C_CYAN : 0x0186;
+            else if (power_up.type == POWERUP_DRONE) aura_col = (p_aura_counter / 4 % 2 == 0) ? COLOR_GREEN : 0x03A0;
+            else if (power_up.type == POWERUP_LASERGRID) aura_col = (p_aura_counter / 4 % 2 == 0) ? COLOR_YELLOW : 0x8200;
+            else if (power_up.type == POWERUP_OVERLOAD) aura_col = (p_aura_counter / 4 % 2 == 0) ? COLOR_RED : 0x8000;
+            else if (power_up.type == POWERUP_MISSILE) aura_col = (p_aura_counter / 4 % 2 == 0) ? C_ORANGE : 0xA420;
 
             draw_rect((int)power_up.x - 1, power_up.y - 1, 10, 1, aura_col);
             draw_rect((int)power_up.x - 1, power_up.y + 8, 10, 1, aura_col);
