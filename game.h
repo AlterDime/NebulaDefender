@@ -5,19 +5,23 @@
 
 // Define constants
 #define MAX_BULLETS 24
-#define MAX_ENEMIES 3
-#define MAX_BOSS_BULLETS 3
+#define MAX_ENEMIES 6
+#define MAX_BOSS_BULLETS 12
 #define MAX_ENEMY_BULLETS 4
+#define MAX_GEMS 10
 
-// Game entities
+// Gem item struct definition is in game_types.h
 extern Player player;
 extern Bullet bullets[MAX_BULLETS];
 extern Enemy enemies[MAX_ENEMIES];
 extern PowerUpItem power_up;
 extern BossBullet boss_bullets[MAX_BOSS_BULLETS];
 extern EnemyBullet enemy_bullets[MAX_ENEMY_BULLETS];
+extern Gem gems[MAX_GEMS];
 
 // HUD & State
+extern int weapon_level;       // Stacking weapon upgrade level (1 to 4)
+extern int auto_fire_timer;    // Cooldown timer for fire rate
 extern GameMode selected_mode;
 extern int score;
 extern int lives;

@@ -64,6 +64,20 @@ void draw_rect(int x, int y, int w, int h, uint16_t color) {
     if (y + h > SCREEN_HEIGHT) h = SCREEN_HEIGHT - y;
     if (w <= 0 || h <= 0) return;
 
+    // Protect Top HUD Bar (Y 0..17) from playfield screenshake bleeding
+    if (draw_shake_offset_x != 0 || draw_shake_offset_y != 0) {
+        if (y < 18) {
+            int clip = 18 - y;
+            y += clip;
+            h -= clip;
+            if (h <= 0) return;
+        }
+        if (y + h > 148) {
+            h = 148 - y;
+            if (h <= 0) return;
+        }
+    }
+
     set_addr_window(x, y, x + w - 1, y + h - 1);
 
     gpio_put(PIN_DC, 1);
@@ -240,6 +254,26 @@ void draw_sprite_powerup(int x, int y, const uint16_t sprite[8][8]) {
 
 void erase_sprite(int x, int y, int w, int h) {
     draw_rect(x, y, w, h, COLOR_BLACK);
+}
+
+void draw_rect_with_shake(int x, int y, int w, int h, uint16_t color, int shake_x, int shake_y) {
+    int prev_draw_shake_x = draw_shake_offset_x;
+    int prev_draw_shake_y = draw_shake_offset_y;
+    draw_shake_offset_x = shake_x;
+    draw_shake_offset_y = shake_y;
+    draw_rect(x, y, w, h, color);
+    draw_shake_offset_x = prev_draw_shake_x;
+    draw_shake_offset_y = prev_draw_shake_y;
+}
+
+void erase_sprite_with_shake(int x, int y, int w, int h, int shake_x, int shake_y) {
+    int prev_draw_shake_x = draw_shake_offset_x;
+    int prev_draw_shake_y = draw_shake_offset_y;
+    draw_shake_offset_x = shake_x;
+    draw_shake_offset_y = shake_y;
+    erase_sprite(x, y, w, h);
+    draw_shake_offset_x = prev_draw_shake_x;
+    draw_shake_offset_y = prev_draw_shake_y;
 }
 
 void draw_play_icon(int x, int y) {
