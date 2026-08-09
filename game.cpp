@@ -35,9 +35,12 @@ bool spread_shot_active = false;
 int spread_shot_timer = 0;
 bool spread_shot_permanent = false;
 HelperDrone helper_drone = {0.0f, 0.0f, 0.0f, false, 0, 0};
-BlackHole black_hole = {64.0f, 85.0f, false, 0, 0};
+bool laser_grid_active = false;
+int laser_grid_timer = 0;
 bool overload_active = false;
 int overload_timer = 0;
+bool missile_active = false;
+int missile_timer = 0;
 int bomb_count = 0;
 int combo_count = 0;
 int combo_timer = 0;
@@ -80,8 +83,9 @@ bool tutorial_bomb_done = false;
 bool tutorial_life_done = false;
 bool tutorial_spread_done = false;
 bool tutorial_drone_done = false;
-bool tutorial_blackhole_done = false;
+bool tutorial_lasergrid_done = false;
 bool tutorial_overload_done = false;
+bool tutorial_missile_done = false;
 bool new_best_achieved = false;
 
 // Flash Target: Last 4KB sector of 2MB Flash (Memory map start: XIP_BASE)
@@ -161,18 +165,24 @@ void show_tutorial_overlay(PowerUpType type) {
         line1 = "AUTONOMOUS BOT";
         line2 = "AUTO TARGET FIRE";
         sprite_data = sprite_powerup_drone;
-    } else if (type == POWERUP_BLACKHOLE) {
-        theme_color = COLOR_MAGENTA;
-        title = "BLACK HOLE";
-        line1 = "SINGULARITY VOID";
-        line2 = "PULLS & CRUSHES";
-        sprite_data = sprite_powerup_blackhole;
+    } else if (type == POWERUP_LASERGRID) {
+        theme_color = C_CYAN;
+        title = "LASER GRID";
+        line1 = "SCREEN LASER WALL";
+        line2 = "VAPORIZES ENEMIES";
+        sprite_data = sprite_powerup_lasergrid;
     } else if (type == POWERUP_OVERLOAD) {
         theme_color = COLOR_RED;
         title = "HYPER OVERLOAD";
         line1 = "HYPER RAPID FIRE";
         line2 = "AUTO LASER STORM";
         sprite_data = sprite_powerup_overload;
+    } else if (type == POWERUP_MISSILE) {
+        theme_color = C_ORANGE;
+        title = "SEEKING MISSILE";
+        line1 = "HOMING WARHEADS";
+        line2 = "TRACKS TARGETS";
+        sprite_data = sprite_powerup_missile;
     }
 
     // 2. Render Card Background (Navy dark panel with double neon border)
@@ -318,24 +328,26 @@ PowerUpType get_progressive_powerup_type(int current_score) {
         else if (roll == 2) return POWERUP_BOMB;
         else                return POWERUP_LIFE;
     } else if (current_score < 60) {
-        // Mid game: unlocks Spread and Helper Drone
-        int roll = rand() % 6;
+        // Mid game: unlocks Spread, Helper Drone, and Seeking Missile
+        int roll = rand() % 7;
         if (roll == 0)      return POWERUP_SHIELD;
         else if (roll == 1) return POWERUP_DOUBLE;
         else if (roll == 2) return POWERUP_BOMB;
         else if (roll == 3) return POWERUP_LIFE;
         else if (roll == 4) return POWERUP_SPREAD;
-        else                return POWERUP_DRONE;
+        else if (roll == 5) return POWERUP_DRONE;
+        else                return POWERUP_MISSILE;
     } else {
-        // Late game: unlocks all powerups including OP Black Hole and Hyper Overload!
-        int roll = rand() % 8;
+        // Late game: unlocks all powerups including OP Black Hole, Hyper Overload, and Seeking Missile!
+        int roll = rand() % 9;
         if (roll == 0)      return POWERUP_SHIELD;
         else if (roll == 1) return POWERUP_DOUBLE;
         else if (roll == 2) return POWERUP_BOMB;
         else if (roll == 3) return POWERUP_SPREAD;
         else if (roll == 4) return POWERUP_DRONE;
-        else if (roll == 5) return POWERUP_BLACKHOLE;
+        else if (roll == 5) return POWERUP_LASERGRID;
         else if (roll == 6) return POWERUP_OVERLOAD;
+        else if (roll == 7) return POWERUP_MISSILE;
         else                return POWERUP_LIFE;
     }
 }
@@ -367,9 +379,12 @@ void reset_game() {
     spread_shot_timer = 0;
     spread_shot_permanent = false;
     helper_drone = {0.0f, 0.0f, 0.0f, false, 0, 0};
-    black_hole = {64.0f, 85.0f, false, 0, 0};
+    laser_grid_active = false;
+    laser_grid_timer = 0;
     overload_active = false;
     overload_timer = 0;
+    missile_active = false;
+    missile_timer = 0;
     bomb_count = 0;
     combo_count = 0;
     combo_timer = 0;
