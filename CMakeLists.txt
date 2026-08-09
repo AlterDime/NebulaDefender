@@ -28,14 +28,14 @@ set(PICO_BOARD pico CACHE STRING "Board type")
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 
-project(blink C CXX ASM)
+project(nebuladefender C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(blink
+add_executable(nebuladefender
     main.cpp
     graphics.cpp
     audio.cpp
@@ -44,7 +44,7 @@ add_executable(blink
 )
 
 # pull in common dependencies
-target_link_libraries(blink 
+target_link_libraries(nebuladefender 
     pico_stdlib
     hardware_spi
     hardware_flash
@@ -52,10 +52,10 @@ target_link_libraries(blink
 )
 
 if (PICO_CYW43_SUPPORTED)
-    target_link_libraries(blink pico_cyw43_arch_none)
+    target_link_libraries(nebuladefender pico_cyw43_arch_none)
 endif()
 
 # create map/bin/hex file etc.
-pico_add_extra_outputs(blink)
+pico_add_extra_outputs(nebuladefender)
 
 # add url via pico_set_program_url
